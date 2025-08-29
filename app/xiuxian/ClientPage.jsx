@@ -1,11 +1,12 @@
-	"use client";
+	"use client";             // 第一行，只能有這一行，前面不能有空白/註解/BOM
 
-	import React, { useEffect, useMemo, useRef, useState } from "react";
+	// 1) 先放所有 import
+	import React, { useState } from "react";
 	import { REALMS } from "@/data/realms";
 	import { SKILLS } from "@/data/skills";
 	import { BACKGROUNDS } from "@/data/backgrounds";
 
-	/* ---------- 常量 ---------- */
+	// 2) 再放常量 / 工具
 	const SAVE_KEY = "xiuxian-save-v1";
 	const BASE_AUTO_PER_SEC = 1;
 	const BASE_CLICK_GAIN = 1;
@@ -16,6 +17,27 @@
 	  zijinhu:  { key: "zijinhu",  name: "紫金葫", desc: "自動產出 +15%", clickPct: 0, autoPct: 0.15, brPct: 0, cost: 1000, unlockRealmIndex: 3 },
 	  zhenpan:  { key: "zhenpan",  name: "鎮仙陣盤", desc: "突破成功 +8%", clickPct: 0, autoPct: 0, brPct: 0.08, cost: 2000, unlockRealmIndex: 4 },
 	};
+
+	// 3) 最後才是元件（且整檔只會有一個 export default）
+	export default function ClientPage() {
+	  const [n, setN] = useState(0);
+
+	  return (
+		<div className="p-8 text-white">
+		  <h1 className="text-2xl font-bold">Client OK</h1>
+		  <p className="mt-2">Counter: {n}</p>
+		  <button
+			onClick={() => setN(n + 1)}
+			className="mt-4 px-3 py-2 rounded bg-indigo-600 hover:bg-indigo-500"
+		  >
+			+1
+		  </button>
+		</div>
+	  );
+	}
+
+	// 4) 其他子元件（Card / Stat / …）可寫在這之後，但不要再 export default
+
 
 	/* ---------- 工具 ---------- */
 	const fmt = (n) => {
