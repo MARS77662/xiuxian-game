@@ -354,23 +354,24 @@
 			{/* ...（存檔/匯入 + 自檢卡片，保留原碼）... */}
 		  </section>
 
-		  <footer className="max-w-6xl mx-auto text-center mt-10 text-xs text-slate-500">
-			© {new Date().getFullYear()} 修仙論道 · MVP 原型
-		</footer>
-	  </div>
-	  );
-	} // ← function 正常結束
+		       <footer className="max-w-6xl mx-auto text-center mt-10 text-xs text-slate-500">
+        © {new Date().getFullYear()} 修仙論道 · MVP 原型
+      </footer>
+    </div>
+  );
+}
 
-	function Card({ title, children }) {
-	  return (
-		<div className="rounded-2xl p-4 md:p-5 bg-white/5 border border-white/10 shadow-xl">
-		  <div className="flex items-center justify-between mb-3">
-			<h2 className="text-lg font-semibold tracking-wide">{title}</h2>
-		  </div>
-		  {children}
-		</div>
-	  );
-	}
+function Card({ title, children }) {
+  return (
+    <div className="rounded-2xl p-4 md:p-5 bg-white/5 border border-white/10 shadow-xl">
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-lg font-semibold tracking-wide">{title}</h2>
+      </div>
+      {children}
+    </div>
+  );
+}
+
 
 	function Stat({ label, value }) {
 	  return (
