@@ -1,15 +1,8 @@
 "use client";
-
-// 禁止預先產生 & 禁止快取（確保不會被 SSR/Prerender）
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
-export const fetchCache = "force-no-store";
+
 // （可選）明確宣告在 Node.js 執行
 export const runtime = "nodejs";
-
-
-export const prerender = false;
-
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { REALMS } from "@/data/realms";
 import { SKILLS } from "@/data/skills";
