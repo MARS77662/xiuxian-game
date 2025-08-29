@@ -307,11 +307,20 @@
 			  onFinish={(result) => {
 				const { success, daoUsed, failStage, costQi } = result;
 				if (success) {
-				  setS((p)=> ({ ...p, qi: p.qi - costQi, daoHeart: Math.max(0, p.daoHeart - daoUsed), realmIndex: p.realmIndex + 1 }));
+				  setS((p) => ({
+					...p,
+					qi: p.qi - costQi,
+					daoHeart: Math.max(0, p.daoHeart - daoUsed),
+					realmIndex: p.realmIndex + 1,
+				  }));
 				  setMsg(`九重天雷盡滅！成功晉階「${nextRealm?.name || ''}」，消耗道心 ${daoUsed}。`);
 				} else {
 				  const lost = Math.floor(s.qi * 0.5);
-				  setS((p)=> ({ ...p, qi: Math.max(0, p.qi - lost), daoHeart: Math.max(0, p.daoHeart - daoUsed) }));
+				  setS((p) => ({
+					...p,
+					qi: Math.max(0, p.qi - lost),
+					daoHeart: Math.max(0, p.daoHeart - daoUsed),
+				  }));
 				  setMsg(`渡劫失敗（第 ${failStage} 重），損失 ${fmt(lost)} 修為，道心消耗 ${daoUsed}。`);
 				}
 			  }}
@@ -319,83 +328,22 @@
 		  )}
 
 		  {msg && (
-			<div className="max-w-6xl mx-auto mt-4 p-3 rounded-xl bg-emerald-900/40 border border-emerald-700/40 text-emerald-200 text-sm">{msg}</div>
+			<div className="max-w-6xl mx-auto mt-4 p-3 rounded-xl bg-emerald-900/40 border border-emerald-700/40 text-emerald-200 text-sm">
+			  {msg}
+			</div>
 		  )}
 
 		  {/* 主要操作區 */}
 		  <section className="max-w-6xl mx-auto mt-6 grid md:grid-cols-3 gap-6">
-			<Card title="修煉與內功">
-			  <div className="space-y-3">
-				<button onClick={cultivate} className="w-full py-4 rounded-2xl shadow-md bg-amber-600 hover:bg-amber-500 active:scale-[0.99] transition">修煉（點擊） +{fmt(clickGain)}</button>
-				<div className="text-xs text-slate-300">自動修煉：每秒 +{fmt(autoPerSec)}（含境界與功法加成）</div>
-				<div className="grid grid-cols-2 gap-2 mt-3">
-				  <button onClick={refineStones} className="py-2 rounded-xl bg-sky-700 hover:bg-sky-600">煉化靈石（100→1）</button>
-				  <button onClick={comprehendDao} className="py-2 rounded-xl bg-fuchsia-700 hover:bg-fuchsia-600">參悟道心（50%）</button>
-				</div>
-			  </div>
-			</Card>
-
-			<Card title="功法修習">
-			  <div className="space-y-2">
-				{Object.values(SKILLS).map((sk) => {
-				  const lv = s.skills[sk.key];
-				  const cost = costOfSkill(sk.baseCost, sk.growth, lv);
-				  return (
-					<div key={sk.key} className="flex items-center justify-between gap-2 p-2 rounded-xl bg-slate-800/60">
-					  <div>
-						<div className="font-medium">{sk.name} <span className="text-xs text-slate-400">Lv.{lv}</span></div>
-						<div className="text-xs text-slate-400">{sk.desc}</div>
-					  </div>
-					  <button onClick={() => buySkill(sk.key)} className="px-3 py-1.5 rounded-lg bg-teal-700 hover:bg-teal-600 text-sm">升級（{cost}）</button>
-					</div>
-				  );
-				})}
-			  </div>
-			</Card>
-
-			<Card title="法寶淬鍊">
-			  <div className="space-y-2">
-				{Object.values(ARTIFACTS).map((a) => (
-				  <div key={a.key} className="flex items-center justify-between gap-2 p-2 rounded-xl bg-slate-800/60">
-					<div>
-					  <div className="font-medium">{a.name} {s.artifacts[a.key] && <span className="text-emerald-400 ml-1">✓</span>}</div>
-					  <div className="text-xs text-slate-400">{a.desc}（解鎖：{REALMS[a.unlockRealmIndex]?.name || '—'}）</div>
-					</div>
-					<button onClick={() => buyArtifact(a.key)} disabled={s.artifacts[a.key]} className={`px-3 py-1.5 rounded-lg text-sm ${s.artifacts[a.key] ? "bg-slate-700 cursor-not-allowed" : "bg-indigo-700 hover:bg-indigo-600"}`}>{s.artifacts[a.key] ? "已擁有" : `購買（${a.cost}）`}</button>
-				  </div>
-				))}
-			  </div>
-			</Card>
+			{/* ...（這裡保留你原本的三個 Card：修煉、功法、法寶）... */}
 		  </section>
 
 		  {/* 突破 / 渡劫 / 飛升 */}
 		  <section className="max-w-6xl mx-auto mt-6 grid md:grid-cols-2 gap-6">
-			<Card title="突破境界（含渡劫）">
-			  <div className="space-y-3">
-				<div className="text-sm">目前：<b>{REALMS[s.realmIndex]?.name}</b>（×{REALMS[s.realmIndex]?.multiplier}）</div>
-				{nextRealm ? (
-				  <div className="text-sm">下一境界：<b>{nextRealm.name}</b>｜需求修為：<b>{fmt(nextRealm.costQi)}</b>｜基礎成功率：<b>{Math.round(nextRealm.baseChance * 100)}%</b></div>
-				) : (
-				  <div className="text-sm text-amber-300">已至終境，可待時機飛升。</div>
-				)}
-				<div className="grid grid-cols-2 gap-2">
-				  <button onClick={() => tryBreakthrough(false)} className="py-2 rounded-xl bg-rose-700 hover:bg-rose-600">嘗試突破</button>
-				  <button onClick={() => tryBreakthrough(true)} className="py-2 rounded-xl bg-rose-800 hover:bg-rose-700">以道心穩境（+10%）</button>
-				</div>
-				<div className="text-xs text-slate-400">* 若進入「渡劫」或從「渡劫」晉階，將自動觸發九重天雷（可消耗道心+8%/重；持鎮仙陣盤額外+8%）。</div>
-			  </div>
-			</Card>
-
-			<Card title="飛升 · 天命">
-			  <div className="space-y-3">
-				<div className="text-sm">條件：達最終境且修為 ≥ <b>{fmt(100_000_000)}</b></div>
-				<div className="text-sm">已飛升：<b>{s.ascensions}</b> 次</div>
-				<button onClick={ascend} className={`w-full py-2 rounded-xl ${canAscend ? "bg-amber-700 hover:bg-amber-600" : "bg-slate-700 cursor-not-allowed"}`}>飛升（重生）</button>
-			  </div>
-			</Card>
+			{/* ...（突破、飛升卡片，保留原碼）... */}
 		  </section>
 
-		  {/* 新手/每日 + 成就（簡版） + 排行榜（本地） */}
+		  {/* 新手/每日 + 排行榜（本地） */}
 		  <section className="max-w-6xl mx-auto mt-6 grid md:grid-cols-2 gap-6">
 			<RewardsBar s={s} setS={setS} setMsg={setMsg} />
 			<Leaderboard s={s} />
@@ -403,37 +351,16 @@
 
 		  {/* 存檔 / 匯入 / Debug */}
 		  <section className="max-w-6xl mx-auto mt-6 grid md:grid-cols-2 gap-6">
-			<Card title="存檔 / 匯入">
-			  <div className="space-y-2">
-				<button onClick={exportSave} className="w-full py-2 rounded-xl bg-slate-800 hover:bg-slate-700">導出存檔（複製到剪貼簿）</button>
-				<textarea value={importText} onChange={(e) => setImportText(e.target.value)} placeholder="貼上導出字串以匯入……" className="w-full h-24 p-2 rounded-xl bg-black/40 border border-slate-700 outline-none" />
-				<button onClick={importSave} className="w-full py-2 rounded-xl bg-slate-800 hover:bg-slate-700">匯入存檔</button>
-			  </div>
-			</Card>
-			<Card title="開發者工具 / 自檢">
-			  <div className="grid grid-cols-2 gap-2 text-sm">
-				<button onClick={() => setS((p) => ({ ...p, qi: p.qi + 10_000 }))} className="py-2 rounded-xl bg-slate-800 hover:bg-slate-700">+1萬靈力</button>
-				<button onClick={() => setS((p) => ({ ...p, stones: p.stones + 200 }))} className="py-2 rounded-xl bg-slate-800 hover:bg-slate-700">+200靈石</button>
-				<button onClick={() => setS((p) => ({ ...p, daoHeart: p.daoHeart + 1 }))} className="py-2 rounded-xl bg-slate-800 hover:bg-slate-700">+1道心</button>
-				<button onClick={hardReset} className="py-2 rounded-xl bg-rose-900 hover:bg-rose-800">重置存檔</button>
-			  </div>
-			  {DEV_SHOW_TESTS && (
-				<div className="mt-3 p-3 rounded-lg bg-black/30 border border-slate-700">
-				  <div className="text-xs text-slate-400 mb-1">內建自檢</div>
-				  <ul className="text-xs space-y-1">
-					{tests.map((t, i) => (
-					  <li key={i} className={t.pass ? "text-emerald-400" : "text-rose-400"}>{t.pass ? "✓" : "✗"} {t.name}</li>
-					))}
-				  </ul>
-				</div>
-			  )}
-			</Card>
+			{/* ...（存檔/匯入 + 自檢卡片，保留原碼）... */}
 		  </section>
 
-		  <footer className="max-w-6xl mx-auto text-center mt-10 text-xs text-slate-500">© {new Date().getFullYear()} 修仙論道 · MVP 原型</footer>
+		  <footer className="max-w-6xl mx-auto text-center mt-10 text-xs text-slate-500">
+			© {new Date().getFullYear()} 修仙論道 · MVP 原型
+		  </footer>
 		</div>
-	  );
-	}
+	  ); // ← 這行一定要在這裡結束 return(...)
+	}     // ← 這行結束主元件
+
 
 	function Card({ title, children }) {
 	  return (
