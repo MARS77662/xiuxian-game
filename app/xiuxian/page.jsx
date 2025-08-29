@@ -356,11 +356,10 @@
 
 		  <footer className="max-w-6xl mx-auto text-center mt-10 text-xs text-slate-500">
 			© {new Date().getFullYear()} 修仙論道 · MVP 原型
-		  </footer>
-		</div>
-	  ); 
-	}     
-
+		</footer>
+	  </div>
+	  );
+	} // ← function 正常結束
 
 	function Card({ title, children }) {
 	  return (
