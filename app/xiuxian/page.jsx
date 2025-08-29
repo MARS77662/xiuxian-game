@@ -202,6 +202,11 @@ export default function XiuXianLunDaoApp() {
       setS((p) => ({ ...p, ...parsed }));
       setMsg("存檔已匯入。");
       setImportText("");
+	  // —— 測試用加值工具 —— 
+const addStones = (n=1000) => setS(p => ({ ...p, stones: p.stones + n }));
+const addQi     = (n=10000) => setS(p => ({ ...p, qi: p.qi + n }));
+const addDao    = (n=1) => setS(p => ({ ...p, daoHeart: p.daoHeart + n }));
+
     } catch { setMsg("匯入失敗，格式不正確。"); }
   };
 
