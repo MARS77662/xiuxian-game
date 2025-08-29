@@ -358,7 +358,8 @@
 			© {new Date().getFullYear()} 修仙論道 · MVP 原型
 		  </footer>
 		</div>
-	  ); // ← 這行一定要在這裡結束 return(...)    // ← 這行結束主元件
+	  ); 
+	}     
 
 
 	function Card({ title, children }) {
