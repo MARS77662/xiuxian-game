@@ -1,13 +1,13 @@
 "use client";
 
-export default function XiuXianPage() {
-
-// （可選）明確宣告在 Node.js 執行
-export const runtime = "nodejs";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { REALMS } from "@/data/realms";
 import { SKILLS } from "@/data/skills";
 import { BACKGROUNDS } from "@/data/backgrounds";
+export default function XiuXianPage() {
+
+// （可選）明確宣告在 Node.js 執行
+export const runtime = "nodejs";
 
 const [clicked, setClicked] = useState(false);
 const SAVE_KEY = "xiuxian-save-v1";
