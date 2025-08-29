@@ -1,9 +1,7 @@
-"use client";
+	"use client";
 
-export const prerender = false;     // 明確關閉本頁的預先產生
-export const dynamic = "force-dynamic"; // 強制動態（不快取、走 CSR）
-
-
+	export const prerender = false;          // 關閉預先產生
+	export const dynamic = "force-dynamic";  // 強制動態渲染（CSR）
 
 	import React, { useEffect, useMemo, useRef, useState } from "react";
 
@@ -14,19 +12,15 @@ export const dynamic = "force-dynamic"; // 強制動態（不快取、走 CSR）
 
 	// ====== 常數定義 ======
 	const SAVE_KEY = "xiuxian-save-v1";
+	const BASE_AUTO_PER_SEC = 1;  // 每秒基礎自動修煉量
+	const BASE_CLICK_GAIN = 1;    // 每次點擊基礎修煉量
+	const QI_TO_STONE = 100;      // 100 靈力 = 1 靈石
 
-	// 每秒基礎自動修煉量（會被各種加成放大）
-	const BASE_AUTO_PER_SEC = 1;
-	// 每次點擊的基礎修煉量
-	const BASE_CLICK_GAIN = 1;
-	// 靈力→靈石 兌換率
-	const QI_TO_STONE = 100; // 100 靈力 = 1 靈石
-
-	// 法寶（放在本檔即可）
+	// 法寶（本檔內）
 	const ARTIFACTS = {
-	  qingxiao: { key: "qingxiao", name: "青霄劍",   desc: "點擊效率 +25%", clickPct: 0.25, autoPct: 0, brPct: 0,    cost: 500,  unlockRealmIndex: 2 }, // 築基後
-	  zijinhu:  { key: "zijinhu",  name: "紫金葫",   desc: "自動產出 +15%", clickPct: 0,    autoPct: 0.15, brPct: 0,    cost: 1000, unlockRealmIndex: 3 }, // 結丹後
-	  zhenpan:  { key: "zhenpan",  name: "鎮仙陣盤", desc: "突破成功 +8%",  clickPct: 0,    autoPct: 0,    brPct: 0.08, cost: 2000, unlockRealmIndex: 4 }, // 元嬰後
+	  qingxiao: { key: "qingxiao", name: "青霄劍",   desc: "點擊效率 +25%", clickPct: 0.25, autoPct: 0,    brPct: 0,    cost: 500,  unlockRealmIndex: 2 },
+	  zijinhu:  { key: "zijinhu",  name: "紫金葫",   desc: "自動產出 +15%", clickPct: 0,    autoPct: 0.15, brPct: 0,    cost: 1000, unlockRealmIndex: 3 },
+	  zhenpan:  { key: "zhenpan",  name: "鎮仙陣盤", desc: "突破成功 +8%",  clickPct: 0,    autoPct: 0,    brPct: 0.08, cost: 2000, unlockRealmIndex: 4 },
 	};
 
 	// ====== 工具函數 ======
@@ -40,18 +34,16 @@ export const dynamic = "force-dynamic"; // 強制動態（不快取、走 CSR）
 
 	// ====== 初始存檔 ======
 	const defaultState = () => ({
-	  qi: 0,              // 靈力
-	  stones: 0,          // 靈石
-	  daoHeart: 0,        // 道心
-	  realmIndex: 0,      // 當前境界索引
+	  qi: 0,
+	  stones: 0,
+	  daoHeart: 0,
+	  realmIndex: 0,
 	  skills: { tuna: 0, wuxing: 0, jiutian: 0 },
 	  artifacts: { qingxiao: false, zijinhu: false, zhenpan: false },
 	  ascensions: 0,
 	  talent: { auto: 0, click: 0 },
-	  // 新手與每日
 	  meta: { starterGift: false },
 	  login: { last: "", streak: 0, dayClaimed: false },
-	  // 排行
 	  playerName: "散仙",
 	  lastTick: Date.now(),
 	});
@@ -70,7 +62,7 @@ export const dynamic = "force-dynamic"; // 強制動態（不快取、走 CSR）
 	  return out;
 	}
 
-	// ====== 主元件 ======
+	// ====== 主元件（唯一 default 匯出） ======
 	export default function XiuXianLunDaoApp() {
 	  const [s, setS] = useState(defaultState);
 	  const tickRef = useRef(null);
@@ -78,12 +70,12 @@ export const dynamic = "force-dynamic"; // 強制動態（不快取、走 CSR）
 	  const [importText, setImportText] = useState("");
 	  const tests = useMemo(() => DEV_SHOW_TESTS ? runSelfTests() : [], []);
 
-	  // 渡劫（九重天雷）Modal 狀態
+	  // 渡劫 Modal 狀態
 	  const [dujie, setDujie] = useState({
 		open: false,
 		useDaoHeart: true,
 		running: false,
-		logs: [], // { stage, pass, chance }
+		logs: [],
 		finished: false,
 		nextName: "",
 		costQi: 0,
@@ -116,11 +108,9 @@ export const dynamic = "force-dynamic"; // 強制動態（不快取、走 CSR）
 		s.skills.wuxing * SKILLS.wuxing.autoPct +
 		s.skills.jiutian * SKILLS.jiutian.autoPct
 	  );
-
 	  const artAutoBonus = (s.artifacts.zijinhu ? ARTIFACTS.zijinhu.autoPct : 0);
 	  const artClickBonus = (s.artifacts.qingxiao ? ARTIFACTS.qingxiao.clickPct : 0);
 	  const artBreakBonus = (s.artifacts.zhenpan ? ARTIFACTS.zhenpan.brPct : 0);
-
 	  const talentAutoBonus = s.talent.auto * 0.10;
 	  const talentClickBonus = s.talent.click * 0.10;
 
@@ -165,7 +155,7 @@ export const dynamic = "force-dynamic"; // 強制動態（不快取、走 CSR）
 	  };
 
 	  const comprehendDao = () => {
-		const ok = Math.random() < 0.5; // 50% 得 1 道心
+		const ok = Math.random() < 0.5;
 		setS((p) => ({ ...p, daoHeart: p.daoHeart + (ok ? 1 : 0) }));
 		setMsg(ok ? "頓悟片刻，道心+1。" : "心浮氣躁，未得所悟。");
 	  };
@@ -175,82 +165,48 @@ export const dynamic = "force-dynamic"; // 強制動態（不快取、走 CSR）
 	  const canAscend = s.realmIndex >= REALMS.length - 1 && s.qi >= 100_000_000;
 
 	  const tryBreakthrough = (useDaoHeart = false) => {
-  if (!nextRealm) { setMsg("已至圓滿，去飛升吧！"); return; }
-  if (s.qi < nextRealm.costQi) { setMsg("修為不足，尚難撼動瓶頸。"); return; }
+		if (!nextRealm) { setMsg("已至圓滿，去飛升吧！"); return; }
+		if (s.qi < nextRealm.costQi) { setMsg("修為不足，尚難撼動瓶頸。"); return; }
 
-  const isIntoDujie = nextRealm.key === "dujie";
-  const isDujieNow = REALMS[s.realmIndex]?.key === "dujie";
+		// 若「下一階」或「當前階」涉及渡劫 → 僅開啟渡劫視窗，實際結算交給 Modal
+		const isIntoDujie = nextRealm.key === "dujie";
+		const isDujieNow  = REALMS[s.realmIndex]?.key === "dujie";
+		if (isIntoDujie || isDujieNow) {
+		  setDujie({
+			open: true,
+			useDaoHeart: true,
+			running: false,
+			logs: [],
+			finished: false,
+			nextName: nextRealm.name,
+			costQi: nextRealm.costQi,
+		  });
+		  return;
+		}
 
-  // 進入或正處於「渡劫」→ 只開彈窗，其他邏輯交給 DujieModal
-  if (isIntoDujie || isDujieNow) {
-    setDujie({
-      open: true,
-      useDaoHeart: true,
-      running: false,
-      logs: [],
-      finished: false,
-      nextName: nextRealm.name,
-      costQi: nextRealm.costQi,
-    });
-    return;
-  }
+		// 一般突破
+		const baseChance = nextRealm.baseChance ?? 0.5;
+		const bonus = (useDaoHeart ? 0.10 : 0) + artBreakBonus; // 道心 + 陣盤
+		const chance = Math.min(0.98, baseChance + bonus);
+		const success = Math.random() < chance;
 
-  // 一般突破（非渡劫）
-  const baseChance = nextRealm.baseChance ?? 0.5;
-  const bonus = (useDaoHeart ? 0.10 : 0) + artBreakBonus; // 道心 + 陣盤
-  const chance = Math.min(0.98, baseChance + bonus);
-  const success = Math.random() < chance;
-
-  if (success) {
-    setS((p) => ({
-      ...p,
-      qi: p.qi - nextRealm.costQi,
-      daoHeart: p.daoHeart - (useDaoHeart ? 1 : 0),
-      realmIndex: p.realmIndex + 1,
-    }));
-    setMsg(`突破成功！晉階「${nextRealm.name}」。`);
-  } else {
-    const lost = Math.floor(s.qi * 0.3);
-    setS((p) => ({
-      ...p,
-      qi: Math.max(0, p.qi - lost),
-      daoHeart: p.daoHeart - (useDaoHeart ? 1 : 0),
-    }));
-    setMsg(`走火入魔！損失 ${fmt(lost)} 修為。`);
-  }
-};
-
-
-
-		const doDujie = () => {
-		  // 九重天雷：每重一擊，基礎成功率為 baseChance + 累加加成。
-		  // 可選擇消耗道心：每重 +8%，若持有陣盤再 +8%。
-		  if (s.qi < nextRealm.costQi) { setMsg("修為不足，無法引雷。"); return; }
-		  let chance = baseChance + bonus; // 第一次
-		  let ok = true;
-		  let daoUsed = 0;
-		  for (let i = 1; i <= 9; i++) {
-			// 玩家策略：若道心>0 則自動使用（簡版策略，可擴充成 UI 勾選）
-			const addDao = s.daoHeart - daoUsed > 0 ? 0.08 : 0; // 每重可+8%
-			const addArtifact = s.artifacts.zhenpan ? 0.08 : 0; // 陣盤護持
-			const rollChance = Math.min(0.98, chance + addDao + addArtifact);
-			const pass = Math.random() < rollChance;
-			if (!pass) { ok = false; break; }
-			if (addDao > 0) daoUsed += 1;
-			// 下一重略微提高難度（或保持），這裡做微增
-			chance = Math.max(0.2, rollChance - 0.03);
-		  }
-		  if (ok) {
-			setS((p) => ({ ...p, qi: p.qi - nextRealm.costQi, daoHeart: Math.max(0, p.daoHeart - daoUsed), realmIndex: p.realmIndex + 1 }));
-			setMsg(`九重天雷盡滅！成功晉階「${nextRealm.name}」，消耗道心 ${daoUsed}。`);
-		  } else {
-			const lost = Math.floor(s.qi * 0.5); // 渡劫失敗懲罰重一些
-			setS((p) => ({ ...p, qi: Math.max(0, p.qi - lost), daoHeart: Math.max(0, p.daoHeart - daoUsed) }));
-			setMsg(`渡劫失敗！損失 ${fmt(lost)} 修為，道心消耗 ${daoUsed}。`);
-		  }
-		};
-
-		if (isIntoDujie || isDujieNow) doDujie(); else doNormal();
+		if (success) {
+		  setS((p) => ({
+			...p,
+			qi: p.qi - nextRealm.costQi,
+			daoHeart: p.daoHeart - (useDaoHeart ? 1 : 0),
+			realmIndex: p.realmIndex + 1,
+		  }));
+		  setMsg(`突破成功！晉階「${nextRealm.name}」。`);
+		} else {
+		  const lost = Math.floor(s.qi * 0.3);
+		  setS((p) => ({
+			...p,
+			qi: Math.max(0, p.qi - lost),
+			daoHeart: p.daoHeart - (useDaoHeart ? 1 : 0),
+		  }));
+		  setMsg(`走火入魔！損失 ${fmt(lost)} 修為。`);
+		}
 	  };
 
 	  const ascend = () => {
@@ -303,7 +259,7 @@ export const dynamic = "force-dynamic"; // 強制動態（不快取、走 CSR）
 			</div>
 		  </header>
 
-		  {/* 背景四階段切換 + 打坐動畫位（保留） */}
+		  {/* 背景四階段切換 + 打坐動畫 */}
 		  <MeditationHeroImg realmKey={REALMS[s.realmIndex]?.key} />
 
 		  {dujie.open && (
@@ -320,7 +276,7 @@ export const dynamic = "force-dynamic"; // 強制動態（不快取、走 CSR）
 					daoHeart: Math.max(0, p.daoHeart - daoUsed),
 					realmIndex: p.realmIndex + 1,
 				  }));
-				  setMsg(`九重天雷盡滅！成功晉階「${nextRealm?.name || ''}」，消耗道心 ${daoUsed}。`);
+				  setMsg(`九重天雷盡滅！成功晉階「${REALMS[s.realmIndex + 1]?.name || ''}」，消耗道心 ${daoUsed}。`);
 				} else {
 				  const lost = Math.floor(s.qi * 0.5);
 				  setS((p) => ({
@@ -340,14 +296,14 @@ export const dynamic = "force-dynamic"; // 強制動態（不快取、走 CSR）
 			</div>
 		  )}
 
-		  {/* 主要操作區 */}
+		  {/* 主要操作區：此處放你的三個 Card（修煉 / 功法 / 法寶） */}
 		  <section className="max-w-6xl mx-auto mt-6 grid md:grid-cols-3 gap-6">
-			{/* ...（這裡保留你原本的三個 Card：修煉、功法、法寶）... */}
+			{/* TODO: 你的原本內容貼回來 */}
 		  </section>
 
 		  {/* 突破 / 渡劫 / 飛升 */}
 		  <section className="max-w-6xl mx-auto mt-6 grid md:grid-cols-2 gap-6">
-			{/* ...（突破、飛升卡片，保留原碼）... */}
+			{/* TODO: 突破、飛升卡片貼回來；記得呼叫 tryBreakthrough、ascend */}
 		  </section>
 
 		  {/* 新手/每日 + 排行榜（本地） */}
@@ -358,28 +314,27 @@ export const dynamic = "force-dynamic"; // 強制動態（不快取、走 CSR）
 
 		  {/* 存檔 / 匯入 / Debug */}
 		  <section className="max-w-6xl mx-auto mt-6 grid md:grid-cols-2 gap-6">
-			{/* ...（存檔/匯入 + 自檢卡片，保留原碼）... */}
+			{/* TODO: 存檔/匯入 + 自檢卡片貼回來（呼叫 exportSave / importSave / tests） */}
 		  </section>
 
-		       <footer className="max-w-6xl mx-auto text-center mt-10 text-xs text-slate-500">
-        © {new Date().getFullYear()} 修仙論道 · MVP 原型
-      </footer>
-    </div>
-  );
-} // ←←← 這一行是新的，關閉 XiuXianLunDaoApp
+		  <footer className="max-w-6xl mx-auto text-center mt-10 text-xs text-slate-500">
+			© {new Date().getFullYear()} 修仙論道 · MVP 原型
+		  </footer>
+		</div>
+	  );
+	}
 
-
-function Card({ title, children }) {
-  return (
-    <div className="rounded-2xl p-4 md:p-5 bg-white/5 border border-white/10 shadow-xl">
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-lg font-semibold tracking-wide">{title}</h2>
-      </div>
-      {children}
-    </div>
-  );
-}
-
+	/* ====== 子元件們（具名，勿 default） ====== */
+	function Card({ title, children }) {
+	  return (
+		<div className="rounded-2xl p-4 md:p-5 bg-white/5 border border-white/10 shadow-xl">
+		  <div className="flex items-center justify-between mb-3">
+			<h2 className="text-lg font-semibold tracking-wide">{title}</h2>
+		  </div>
+		  {children}
+		</div>
+	  );
+	}
 
 	function Stat({ label, value }) {
 	  return (
@@ -399,7 +354,7 @@ function Card({ title, children }) {
 	  };
 	  const claimDaily = () => {
 		if (s.login.dayClaimed !== false) return;
-		const gain = 30 + Math.min(6, s.login.streak)*10; // 40~90
+		const gain = 30 + Math.min(6, s.login.streak)*10;
 		setS((p)=>({ ...p, stones: p.stones + gain, login: { ...p.login, dayClaimed: true } }));
 		setMsg(`每日修煉有成：靈石 +${gain}`);
 	  };
@@ -459,7 +414,7 @@ function Card({ title, children }) {
 	  );
 	}
 
-	// === 打坐修仙動畫元件（四階段背景 + 柔光） ===
+	// === 打坐修仙動畫 ===
 	function MeditationHeroImg({ realmKey }){
 	  const stageKey = useMemo(() => {
 		if (realmKey === 'daluo') return 'daluo';
@@ -494,35 +449,31 @@ function Card({ title, children }) {
 	  );
 	}
 
-	// === 渡劫 Modal（九重天雷動畫 + 道心開關） ===
+	// === 渡劫 Modal ===
 	function DujieModal({ state, setState, artBreakBonus, onFinish }){
 	  const { open, useDaoHeart, running, logs, finished, nextName, costQi } = state;
 	  if (!open) return null;
-
-	  const closeIfDone = () => { if (finished && !running) setState((p)=> ({ ...p, open:false })); };
 
 	  const start = () => {
 		if (running) return;
 		setState((p)=> ({ ...p, running:true, logs:[], finished:false }));
 
 		let stage = 1;
-		let chance = 0.5; // 會在第一輪覆蓋
+		let chance = 0.5;
 		let daoUsed = 0;
 
 		const step = () => {
 		  if (stage > 9) {
-			// 成功全部通過
 			setState((p)=> ({ ...p, running:false, finished:true }));
 			onFinish({ success:true, daoUsed, failStage:null, costQi });
 			return;
 		  }
-		  // 初始機率：用上一輪 chance 或基本面，保守取 55% 起點，並加成
 		  const base = Math.max(0.55, (0.35 + artBreakBonus));
 		  const addDao = useDaoHeart ? 0.08 : 0;
 		  const rollChance = Math.min(0.98, (stage === 1 ? base : chance) + addDao);
 		  const pass = Math.random() < rollChance;
 
-		  if (useDaoHeart) daoUsed += 1; // 每重消耗 1 道心（若開啟）
+		  if (useDaoHeart) daoUsed += 1;
 
 		  setState((p)=> ({ ...p, logs: [...p.logs, { stage, pass, chance: rollChance }] }));
 
@@ -531,7 +482,6 @@ function Card({ title, children }) {
 			onFinish({ success:false, daoUsed, failStage:stage, costQi });
 			return;
 		  }
-		  // 下一重略降 3% 形成壓力
 		  chance = Math.max(0.2, rollChance - 0.03);
 		  stage += 1;
 		  setTimeout(step, 800);
@@ -555,7 +505,6 @@ function Card({ title, children }) {
 			  </label>
 			</div>
 
-			{/* 九格顯示 */}
 			<div className="grid grid-cols-3 gap-2 my-3">
 			  {Array.from({length:9}).map((_,i)=> {
 				const row = logs[i];
@@ -564,15 +513,13 @@ function Card({ title, children }) {
 				  <div key={i} className={`h-16 rounded-xl border flex items-center justify-center text-lg font-semibold
 					${row ? (row.pass ? 'bg-emerald-600/30 border-emerald-400/40 text-emerald-200' : 'bg-rose-600/30 border-rose-400/40 text-rose-200')
 						: 'bg-slate-800/60 border-slate-600/50 text-slate-300'}
-					${isActive ? 'ring-2 ring-indigo-400 animate-pulse' : ''}
-				  `}>
+					${isActive ? 'ring-2 ring-indigo-400 animate-pulse' : ''}`}>
 					{row ? (row.pass ? '✓' : '✗') : (isActive ? '⚡' : i+1)}
 				  </div>
 				);
 			  })}
 			</div>
 
-			{/* 概率提示 */}
 			<div className="text-xs text-slate-400 mb-3">每重成功率會隨進度微降；開啟「使用道心」可每重 +8%，持有鎮仙陣盤另 +8%。</div>
 
 			<div className="flex items-center justify-end gap-2">
@@ -580,7 +527,6 @@ function Card({ title, children }) {
 			  {finished && <button onClick={()=> setState((p)=> ({ ...p, open:false }))} className="px-4 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-600">確定</button>}
 			</div>
 
-			{/* 簡單的閃電動畫樣式 */}
 			<style>{`
 			  @keyframes bolt { 0%,100%{ opacity:.2 } 20%{ opacity:1 } 40%{ opacity:.3 } 60%{ opacity:.9 } 80%{ opacity:.4 } }
 			  .animate-bolt{ animation: bolt .6s ease-in-out infinite }
