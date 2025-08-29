@@ -3,9 +3,9 @@
 	import React, { useEffect, useMemo, useRef, useState } from "react";
 
 	// === 外部資料 ===
-	import { REALMS } from "@/data/realms";
-	import { SKILLS } from "@/data/skills";
-	import { BACKGROUNDS } from "@/data/backgrounds";
+	import { REALMS } from "@/data/realms.js";
+	import { SKILLS } from "@/data/skills.js";
+	import { BACKGROUNDS } from "@/data/backgrounds.js";
 
 	// ====== 常數定義 ======
 	const SAVE_KEY = "xiuxian-save-v1";
