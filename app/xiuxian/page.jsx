@@ -25,7 +25,7 @@ const fmt = (n) => {
 const costOfSkill = (base, growth, lv) => Math.ceil(base * Math.pow(growth, lv));
 
 // ====== 初始存檔 ======
-c const defaultState = () => ({
+const defaultState = () => ({
    qi: 0,
    stones: 0,
    daoHeart: 0,
