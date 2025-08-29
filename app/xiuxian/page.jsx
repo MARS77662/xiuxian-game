@@ -1,5 +1,13 @@
 "use client";
 
+// 禁止預先產生 & 禁止快取（確保不會被 SSR/Prerender）
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
+// （可選）明確宣告在 Node.js 執行
+export const runtime = "nodejs";
+
+
 export const prerender = false;
 export const dynamic = "force-dynamic";
 
