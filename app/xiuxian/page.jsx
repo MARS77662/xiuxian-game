@@ -440,14 +440,14 @@
 		  </div>
 
 		  {/* 打坐剪影（SVG） */}
-		  <div className=\"relative flex flex-col md:flex-row items-center justify-center px-6 py-16 md:py-20 gap-4 md:gap-10\">
+		  <div className="relative flex flex-col md:flex-row items-center justify-center px-6 py-16 md:py-20 gap-4 md:gap-10">
 			<svg viewBox="0 0 200 200" className="w-40 md:w-56 drop-shadow-xl animate-float-slow">
 			  {/* 身體剪影 */}
 			  <path d="M100 30c-12 0-22 10-22 22s10 22 22 22 22-10 22-22-10-22-22-22zM62 120c8-18 24-28 38-28s30 10 38 28l10 22c3 6-1 12-7 12H59c-6 0-10-6-7-12l10-22zM45 150c-6 0-10 6-7 12 6 12 30 18 62 18s56-6 62-18c3-6-1-12-7-12z" fill="rgba(255,255,255,0.85)"/>
 			  {/* 光圈 */}
 			  <circle cx="100" cy="110" r="54" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="2" className="animate-pulse"/>
 			</svg>
-			<div className=\"ml-0 md:ml-10 hero-text text-center md:text-left max-w-\[420px\]\">
+			<div className="ml-0 md:ml-10 hero-text text-center md:text-left max-w-\[420px\]">
 			  <h3 className="text-2xl md:text-3xl font-semibold">入定·吐納</h3>
 			  <p className="text-slate-300 mt-1">隨呼吸起伏，靈氣自丹田匯聚——點擊修煉或嘗試突破吧。</p>
 			</div>
@@ -505,9 +505,9 @@
 		  </div>
 
 		  {/* 插畫：請把你的圖片放到 /public/meditate.png */}
-		  <div className=\"relative flex flex-col md:flex-row items-center justify-center px-6 py-16 md:py-20 gap-4 md:gap-10\">
-			<img src="/meditate.png" alt="打坐修仙" className=\"w-64 sm:w-72 md:w-\[420px\] drop-shadow-[0_18px_40px_rgba(0,0,0,.55)] animate-float-slow select-none pointer-events-none"/>
-			<div className=\"ml-0 md:ml-10 hero-text text-center md:text-left max-w-\[420px\]\">
+		  <div className="relative flex flex-col md:flex-row items-center justify-center px-6 py-16 md:py-20 gap-4 md:gap-10">
+			<img src="/meditate.png" alt="打坐修仙" className="w-64 sm:w-72 md:w-\[420px\] drop-shadow-[0_18px_40px_rgba(0,0,0,.55)] animate-float-slow select-none pointer-events-none"/>
+			<div className="ml-0 md:ml-10 hero-text text-center md:text-left max-w-\[420px\]">
 			  <h3 className="text-2xl md:text-3xl font-semibold">入定·吐納</h3>
 			  <p className="text-slate-300 mt-1">隨呼吸起伏，靈氣自丹田匯聚——點擊修煉或嘗試突破吧。</p>
 			</div>
