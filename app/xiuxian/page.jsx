@@ -266,7 +266,7 @@
 		  </header>
 
 		  {/* 修仙打坐動畫 Hero */}
-		  <MeditationHero />
+		  <MeditationHeroImg />
 
 		  {msg && (
 			<div className="max-w-6xl mx-auto mt-4 p-3 rounded-xl bg-emerald-900/40 border border-emerald-700/40 text-emerald-200 text-sm">
@@ -447,6 +447,52 @@
 			  {/* 光圈 */}
 			  <circle cx="100" cy="110" r="54" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="2" className="animate-pulse"/>
 			</svg>
+			<div className="ml-6 md:ml-10">
+			  <h3 className="text-2xl md:text-3xl font-semibold">入定·吐納</h3>
+			  <p className="text-slate-300 mt-1">隨呼吸起伏，靈氣自丹田匯聚——點擊修煉或嘗試突破吧。</p>
+			</div>
+		  </div>
+
+		  {/* 內嵌樣式（動畫） */}
+		  <style>{`
+			@keyframes float-slow { 0%,100%{ transform: translateY(0) } 50%{ transform: translateY(-6px) } }
+			.animate-float-slow{ animation: float-slow 5s ease-in-out infinite; }
+			@keyframes aura { 0%{ transform: scale(0.6); opacity: .35 } 70%{ opacity:.08 } 100%{ transform: scale(1.4); opacity: 0 } }
+			.aura{ position:absolute; left:-50%; top:-50%; transform:translate(50%,50%); background:radial-gradient(circle, rgba(168,85,247,.25), rgba(59,130,246,.12) 40%, transparent 70%); animation:aura 3.6s linear infinite; filter: blur(2px); }
+			.aura.delay-300{ animation-delay:.3s }
+			.aura.delay-700{ animation-delay:.7s }
+		  `}</style>
+		</div>
+	  );
+	}
+
+
+	// === 打坐修仙動畫元件（插畫版） ===
+	function MeditationHeroImg(){
+	  return (
+		<div className="relative max-w-6xl mx-auto mt-6 overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-slate-900/60 to-black/60">
+		  {/* 背景星點與柔光 */}
+		  <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
+			<defs>
+			  <radialGradient id="g2" cx="50%" cy="40%" r="60%">
+				<stop offset="0%" stopColor="rgba(99,102,241,0.35)"/>
+				<stop offset="60%" stopColor="rgba(99,102,241,0.08)"/>
+				<stop offset="100%" stopColor="transparent"/>
+			  </radialGradient>
+			</defs>
+			<rect width="100%" height="100%" fill="url(#g2)"/>
+		  </svg>
+
+		  {/* 靈氣漣漪 */}
+		  <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+			<div className="aura w-40 h-40 rounded-full"/>
+			<div className="aura w-56 h-56 rounded-full delay-300"/>
+			<div className="aura w-72 h-72 rounded-full delay-700"/>
+		  </div>
+
+		  {/* 插畫：請把你的圖片放到 /public/meditate.png */}
+		  <div className="relative flex items-center justify-center px-6 py-16 md:py-20">
+			<img src="/meditate.png" alt="打坐修仙" className="w-44 md:w-64 drop-shadow-xl animate-float-slow select-none pointer-events-none"/>
 			<div className="ml-6 md:ml-10">
 			  <h3 className="text-2xl md:text-3xl font-semibold">入定·吐納</h3>
 			  <p className="text-slate-300 mt-1">隨呼吸起伏，靈氣自丹田匯聚——點擊修煉或嘗試突破吧。</p>
