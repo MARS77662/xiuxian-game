@@ -360,7 +360,6 @@
       </footer>
     </div>
   );
-}
 
 function Card({ title, children }) {
   return (
