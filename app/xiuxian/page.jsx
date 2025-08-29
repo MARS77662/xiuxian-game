@@ -492,7 +492,7 @@
 
 		  {/* 插畫：請把你的圖片放到 /public/meditate.png */}
 		  <div className="relative flex items-center justify-center px-6 py-16 md:py-20">
-			<img src="/meditate.png" alt="打坐修仙" className="w-72 md:w-[420px] drop-shadow-xl animate-float-slow select-none pointer-events-none"/>
+			<img src="/meditate.png" alt="打坐修仙" className="max-w-lg w-full drop-shadow-xl animate-float-slow"/>
 			<div className="ml-6 md:ml-10">
 			  <h3 className="text-2xl md:text-3xl font-semibold">入定·吐納</h3>
 			  <p className="text-slate-300 mt-1">隨呼吸起伏，靈氣自丹田匯聚——點擊修煉或嘗試突破吧。</p>
