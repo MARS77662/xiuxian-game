@@ -8,6 +8,7 @@ import { REALMS } from "@/data/realms";
 import { SKILLS } from "@/data/skills";
 import { BACKGROUNDS } from "@/data/backgrounds";
 
+const [clicked, setClicked] = useState(false);
 const SAVE_KEY = "xiuxian-save-v1";
 const BASE_AUTO_PER_SEC = 1;
 const BASE_CLICK_GAIN = 1;
@@ -31,14 +32,21 @@ const fmt = (n) => {
 
 const costOfSkill = (base, growth, lv) => Math.ceil(base * Math.pow(growth, lv));
 
+// ====== 初始存檔 ======
 const defaultState = () => ({
-  qi: 0, stones: 0, daoHeart: 0, realmIndex: 0,
+  qi: 0,
+  stones: 0,
+  daoHeart: 0,
+  realmIndex: 0,
   skills: { tuna: 0, wuxing: 0, jiutian: 0 },
   artifacts: { qingxiao: false, zijinhu: false, zhenpan: false },
-  ascensions: 0, talent: { auto: 0, click: 0 },
-  meta: { starterGift: false },
-  login: { last: "", streak: 0, dayClaimed: false },
-  playerName: "散仙",
+  ascensions: 0,
+  talent: { auto: 0, click: 0 },
+
+  // ★ 新增：新手/每日
+  meta: { starterGift: false },                // 是否已領新手禮包
+  login: { last: "", streak: 0, dayClaimed: false }, // 最後登入日期、連續天數、今日是否已領
+
   lastTick: Date.now(),
 });
 
@@ -396,18 +404,20 @@ function Stat({ label, value }) {
   );
 }
 
-function RewardsBar({ s, setS, setMsg }){
+function RewardsBar({ s, setS, setMsg }) {
   const claimStarter = () => {
     if (s.meta.starterGift) return;
-    setS((p)=>({ ...p, stones: p.stones + 500, meta: { ...p.meta, starterGift: true } }));
+    setS((p) => ({ ...p, stones: p.stones + 500, meta: { ...p.meta, starterGift: true } }));
     setMsg("新手禮包已領取：靈石 +500！");
   };
+
   const claimDaily = () => {
-    if (s.login.dayClaimed !== false) return;
-    const gain = 30 + Math.min(6, s.login.streak)*10;
-    setS((p)=>({ ...p, stones: p.stones + gain, login: { ...p.login, dayClaimed: true } }));
+    if (s.login.dayClaimed === true) return;
+    const gain = 30 + Math.min(6, s.login.streak) * 10; // 40~90
+    setS((p) => ({ ...p, stones: p.stones + gain, login: { ...p.login, dayClaimed: true } }));
     setMsg(`每日修煉有成：靈石 +${gain}`);
   };
+
   return (
     <Card title="新手 / 每日獎勵">
       <div className="grid md:grid-cols-2 gap-3">
@@ -416,19 +426,33 @@ function RewardsBar({ s, setS, setMsg }){
             <div className="font-medium">新手禮包</div>
             <div className="text-xs opacity-80">首次入門贈禮：靈石 ×500</div>
           </div>
-          <button onClick={claimStarter} disabled={s.meta.starterGift} className={`px-3 py-1.5 rounded-lg ${s.meta.starterGift? 'bg-slate-700 cursor-not-allowed' : 'bg-amber-600 hover:bg-amber-500'}`}>{s.meta.starterGift? '已領取' : '領取'}</button>
+          <button
+            onClick={claimStarter}
+            disabled={s.meta.starterGift}
+            className={`px-3 py-1.5 rounded-lg ${s.meta.starterGift ? 'bg-slate-700 cursor-not-allowed' : 'bg-amber-600 hover:bg-amber-500'}`}
+          >
+            {s.meta.starterGift ? '已領取' : '領取'}
+          </button>
         </div>
+
         <div className="p-3 rounded-xl bg-emerald-900/30 border border-emerald-700/30 text-emerald-100 text-sm flex items-center justify-between">
           <div>
             <div className="font-medium">每日修煉獎</div>
             <div className="text-xs opacity-80">連續 {s.login.streak} 天</div>
           </div>
-          <button onClick={claimDaily} disabled={s.login.dayClaimed===true} className={`px-3 py-1.5 rounded-lg ${s.login.dayClaimed? 'bg-slate-700 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-500'}`}>{s.login.dayClaimed? '已領取' : '領取'}</button>
+          <button
+            onClick={claimDaily}
+            disabled={s.login.dayClaimed === true}
+            className={`px-3 py-1.5 rounded-lg ${s.login.dayClaimed ? 'bg-slate-700 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-500'}`}
+          >
+            {s.login.dayClaimed ? '已領取' : '領取'}
+          </button>
         </div>
       </div>
     </Card>
   );
 }
+
 
 function Leaderboard({ s }){
   const score = s.ascensions*100 + s.realmIndex*10 + Math.floor(s.stones/1000);
