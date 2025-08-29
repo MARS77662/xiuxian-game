@@ -175,50 +175,51 @@ export const dynamic = "force-dynamic"; // 強制動態（不快取、走 CSR）
 	  const canAscend = s.realmIndex >= REALMS.length - 1 && s.qi >= 100_000_000;
 
 	  const tryBreakthrough = (useDaoHeart = false) => {
-	  if (!nextRealm) { setMsg("已至圓滿，去飛升吧！"); return; }
-	  if (s.qi < nextRealm.costQi) { setMsg("修為不足，尚難撼動瓶頸。"); return; }
+  if (!nextRealm) { setMsg("已至圓滿，去飛升吧！"); return; }
+  if (s.qi < nextRealm.costQi) { setMsg("修為不足，尚難撼動瓶頸。"); return; }
 
-	  const isIntoDujie = nextRealm.key === "dujie";
-	  const isDujieNow = REALMS[s.realmIndex]?.key === "dujie";
+  const isIntoDujie = nextRealm.key === "dujie";
+  const isDujieNow = REALMS[s.realmIndex]?.key === "dujie";
 
-	  // 只要進入或正在「渡劫」階段，就改走彈窗動畫流程，這裡直接 return
-	  if (isIntoDujie || isDujieNow) {
-		setDujie({
-		  open: true,
-		  useDaoHeart: true,   // 預設開啟，可在 Modal 切換
-		  running: false,
-		  logs: [],
-		  finished: false,
-		  nextName: nextRealm.name,
-		  costQi: nextRealm.costQi,
-		});
-		return;
-	  }
+  // 進入或正處於「渡劫」→ 只開彈窗，其他邏輯交給 DujieModal
+  if (isIntoDujie || isDujieNow) {
+    setDujie({
+      open: true,
+      useDaoHeart: true,
+      running: false,
+      logs: [],
+      finished: false,
+      nextName: nextRealm.name,
+      costQi: nextRealm.costQi,
+    });
+    return;
+  }
 
-	  // 一般突破（非渡劫）
-	  const baseChance = nextRealm.baseChance ?? 0.5;
-	  const bonus = (useDaoHeart ? 0.10 : 0) + artBreakBonus;   // 道心 + 陣盤加成
-	  const chance = Math.min(0.98, baseChance + bonus);
-	  const success = Math.random() < chance;
+  // 一般突破（非渡劫）
+  const baseChance = nextRealm.baseChance ?? 0.5;
+  const bonus = (useDaoHeart ? 0.10 : 0) + artBreakBonus; // 道心 + 陣盤
+  const chance = Math.min(0.98, baseChance + bonus);
+  const success = Math.random() < chance;
 
-	  if (success) {
-		setS((p) => ({
-		  ...p,
-		  qi: p.qi - nextRealm.costQi,
-		  daoHeart: p.daoHeart - (useDaoHeart ? 1 : 0),
-		  realmIndex: p.realmIndex + 1,
-		}));
-		setMsg(`突破成功！晉階「${nextRealm.name}」。`);
-	  } else {
-		const lost = Math.floor(s.qi * 0.3);
-		setS((p) => ({
-		  ...p,
-		  qi: Math.max(0, p.qi - lost),
-		  daoHeart: p.daoHeart - (useDaoHeart ? 1 : 0),
-		}));
-		setMsg(`走火入魔！損失 ${fmt(lost)} 修為。`);
-	  }
-	};
+  if (success) {
+    setS((p) => ({
+      ...p,
+      qi: p.qi - nextRealm.costQi,
+      daoHeart: p.daoHeart - (useDaoHeart ? 1 : 0),
+      realmIndex: p.realmIndex + 1,
+    }));
+    setMsg(`突破成功！晉階「${nextRealm.name}」。`);
+  } else {
+    const lost = Math.floor(s.qi * 0.3);
+    setS((p) => ({
+      ...p,
+      qi: Math.max(0, p.qi - lost),
+      daoHeart: p.daoHeart - (useDaoHeart ? 1 : 0),
+    }));
+    setMsg(`走火入魔！損失 ${fmt(lost)} 修為。`);
+  }
+};
+
 
 
 		const doDujie = () => {
@@ -365,6 +366,8 @@ export const dynamic = "force-dynamic"; // 強制動態（不快取、走 CSR）
       </footer>
     </div>
   );
+} // ←←← 這一行是新的，關閉 XiuXianLunDaoApp
+
 
 function Card({ title, children }) {
   return (
