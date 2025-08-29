@@ -471,7 +471,7 @@
 	function MeditationHeroImg(){
 	  return (
 		<div className="relative max-w-6xl mx-auto mt-6 overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-slate-900/60 to-black/60">
-		  {/* 背景星點與柔光 */}
+		  {/* 背景柔光 */}
 		  <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
 			<defs>
 			  <radialGradient id="g2" cx="50%" cy="40%" r="60%">
@@ -483,16 +483,29 @@
 			<rect width="100%" height="100%" fill="url(#g2)"/>
 		  </svg>
 
-		  {/* 靈氣漣漪 */}
+		  {/* 靈氣漣漪（擴散） */}
 		  <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-			<div className="aura w-40 h-40 rounded-full"/>
-			<div className="aura w-56 h-56 rounded-full delay-300"/>
-			<div className="aura w-72 h-72 rounded-full delay-700"/>
+			<div className="aura w-44 h-44 rounded-full"/>
+			<div className="aura w-64 h-64 rounded-full delay-300"/>
+			<div className="aura w-80 h-80 rounded-full delay-700"/>
+		  </div>
+
+		  {/* 氣旋（渦輪光） */}
+		  <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none">
+			<div className="vortex w-[540px] h-[540px] opacity-[.18]"/>
+			<div className="vortex w-[420px] h-[420px] opacity-[.22] rotate-180"/>
+		  </div>
+
+		  {/* 星火粒子（沿軌道旋轉） */}
+		  <div className="absolute inset-0 pointer-events-none">
+			{Array.from({length: 18}).map((_,i)=> (
+			  <span key={i} style={{"--a": `${(i/18)*360}deg`, "--r": `${120 + (i%6)*18}px`}} className="spark"/>
+			))}
 		  </div>
 
 		  {/* 插畫：請把你的圖片放到 /public/meditate.png */}
 		  <div className="relative flex items-center justify-center px-6 py-16 md:py-20">
-			<img src="/meditate.png" alt="打坐修仙" className="max-w-lg w-full drop-shadow-xl animate-float-slow"/>
+			<img src="/meditate.png" alt="打坐修仙" className="max-w-lg w-full md:max-w-[520px] drop-shadow-[0_18px_40px_rgba(0,0,0,.55)] animate-float-slow select-none pointer-events-none"/>
 			<div className="ml-6 md:ml-10">
 			  <h3 className="text-2xl md:text-3xl font-semibold">入定·吐納</h3>
 			  <p className="text-slate-300 mt-1">隨呼吸起伏，靈氣自丹田匯聚——點擊修煉或嘗試突破吧。</p>
@@ -501,12 +514,24 @@
 
 		  {/* 內嵌樣式（動畫） */}
 		  <style>{`
+			/* 漂浮 */
 			@keyframes float-slow { 0%,100%{ transform: translateY(0) } 50%{ transform: translateY(-6px) } }
 			.animate-float-slow{ animation: float-slow 5s ease-in-out infinite; }
+
+			/* 漣漪 */
 			@keyframes aura { 0%{ transform: scale(0.6); opacity: .35 } 70%{ opacity:.08 } 100%{ transform: scale(1.4); opacity: 0 } }
 			.aura{ position:absolute; left:-50%; top:-50%; transform:translate(50%,50%); background:radial-gradient(circle, rgba(168,85,247,.25), rgba(59,130,246,.12) 40%, transparent 70%); animation:aura 3.6s linear infinite; filter: blur(2px); }
 			.aura.delay-300{ animation-delay:.3s }
 			.aura.delay-700{ animation-delay:.7s }
+
+			/* 氣旋：以錐形漸層作旋轉光帶，使用遮罩挖空中心 */
+			@keyframes spin { to { transform: rotate(360deg) } }
+			.vortex{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); border-radius:9999px; background:conic-gradient(from 0deg, rgba(255,255,255,.0) 0deg, rgba(255,255,255,.55) 30deg, rgba(255,255,255,.0) 120deg, rgba(255,255,255,.0) 360deg); filter: blur(6px); animation: spin 18s linear infinite; mask-image: radial-gradient(circle at center, transparent 38%, black 60%); }
+
+			/* 星火粒子：沿圓軌道旋轉，偶爾閃爍 */
+			@keyframes orbit { to { transform: rotate(var(--a)) translateX(var(--r)) rotate(calc(-1*var(--a))) } }
+			@keyframes twinkle { 0%,100%{ opacity:.2; box-shadow:0 0 0 0 rgba(255,255,255,.0) } 50%{ opacity:1; box-shadow:0 0 12px 3px rgba(255,255,255,.35) } }
+			.spark{ position:absolute; left:50%; top:50%; width:3px; height:3px; background:#fff; border-radius:9999px; transform-origin: -var(--r) 0; animation: orbit 6s linear infinite, twinkle 3.2s ease-in-out infinite; }
 		  `}</style>
 		</div>
 	  );
