@@ -490,48 +490,140 @@
 		setTimeout(step, 400);
 	  };
 
-	  return (
-		<div className="fixed inset-0 z-50 flex items-center justify-center">
-		  <div className="absolute inset-0 bg-black/70" />
-		  <div className="relative w-full max-w-lg mx-auto rounded-2xl border border-indigo-500/40 bg-slate-900 shadow-2xl p-5">
-			<div className="flex items-center justify-between mb-3">
-			  <div>
-				<div className="text-sm text-indigo-300">天劫臨身</div>
-				<h3 className="text-xl font-semibold">九重天雷 · 渡劫晉階 → {nextName}</h3>
-			  </div>
-			  <label className="flex items-center gap-2 text-sm">
-				<input type="checkbox" checked={useDaoHeart} onChange={(e)=> setState((p)=> ({ ...p, useDaoHeart: e.target.checked }))} />
-				使用道心（每重 +8%）
-			  </label>
-			</div>
+	        {/* 主要操作區：修煉 / 功法 / 法寶 */}
+      <section className="max-w-6xl mx-auto mt-6 grid md:grid-cols-3 gap-6">
+        {/* 修煉 */}
+        <Card title="打坐修煉">
+          <div className="text-sm text-slate-300">
+            每次點擊 +{fmt(clickGain)} 靈力；每秒自動 +{fmt(autoPerSec)} 靈力
+          </div>
+          <div className="flex flex-wrap gap-2 mt-3">
+            <button onClick={cultivate} className="px-4 py-2 rounded-lg bg-indigo-700 hover:bg-indigo-600">修煉</button>
+            <button onClick={refineStones} className="px-4 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-600">煉化靈石</button>
+            <button onClick={comprehendDao} className="px-4 py-2 rounded-lg bg-amber-700 hover:bg-amber-600">參悟道心</button>
+          </div>
+        </Card>
 
-			<div className="grid grid-cols-3 gap-2 my-3">
-			  {Array.from({length:9}).map((_,i)=> {
-				const row = logs[i];
-				const isActive = running && logs.length === i;
-				return (
-				  <div key={i} className={`h-16 rounded-xl border flex items-center justify-center text-lg font-semibold
-					${row ? (row.pass ? 'bg-emerald-600/30 border-emerald-400/40 text-emerald-200' : 'bg-rose-600/30 border-rose-400/40 text-rose-200')
-						: 'bg-slate-800/60 border-slate-600/50 text-slate-300'}
-					${isActive ? 'ring-2 ring-indigo-400 animate-pulse' : ''}`}>
-					{row ? (row.pass ? '✓' : '✗') : (isActive ? '⚡' : i+1)}
-				  </div>
-				);
-			  })}
-			</div>
+        {/* 功法強化 */}
+        <Card title="功法強化">
+          <ul className="space-y-2 text-sm">
+            {["tuna","wuxing","jiutian"].map((k)=> {
+              const def = SKILLS[k];
+              const lv = s.skills[k];
+              const cost = costOfSkill(def.baseCost, def.growth, lv);
+              const can = s.stones >= cost;
+              return (
+                <li key={k} className="flex items-center justify-between gap-3 p-2 rounded-lg bg-black/30 border border-slate-700/40">
+                  <div>
+                    <div className="font-medium">{def.name} <span className="opacity-70">Lv.{lv}</span></div>
+                    <div className="text-slate-400 text-xs">{def.desc}</div>
+                  </div>
+                  <button
+                    onClick={()=>buySkill(k)}
+                    disabled={!can}
+                    className={`px-3 py-1.5 rounded-lg ${can? 'bg-sky-700 hover:bg-sky-600':'bg-slate-700 cursor-not-allowed'}`}
+                  >
+                    升級（{fmt(cost)} 石）
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </Card>
 
-			<div className="text-xs text-slate-400 mb-3">每重成功率會隨進度微降；開啟「使用道心」可每重 +8%，持有鎮仙陣盤另 +8%。</div>
+        {/* 法寶 */}
+        <Card title="法寶鋪（隨境界解鎖）">
+          <ul className="space-y-2 text-sm">
+            {Object.values(ARTIFACTS).map((a)=> {
+              const owned = s.artifacts[a.key];
+              const unlocked = s.realmIndex >= a.unlockRealmIndex;
+              const canBuy = unlocked && !owned && s.stones >= a.cost;
+              return (
+                <li key={a.key} className="flex items-center justify-between gap-3 p-2 rounded-lg bg-black/30 border border-slate-700/40">
+                  <div>
+                    <div className="font-medium">{a.name}{owned && <span className="ml-2 text-emerald-400">（已持有）</span>}</div>
+                    <div className="text-slate-400 text-xs">{a.desc}</div>
+                    {!unlocked && <div className="text-xs text-amber-300 mt-1">需達 {REALMS[a.unlockRealmIndex]?.name} 解鎖</div>}
+                  </div>
+                  <button
+                    onClick={()=>buyArtifact(a.key)}
+                    disabled={!canBuy}
+                    className={`px-3 py-1.5 rounded-lg ${canBuy? 'bg-purple-700 hover:bg-purple-600':'bg-slate-700 cursor-not-allowed'}`}
+                  >
+                    {owned? '已購買' : `購買（${fmt(a.cost)} 石）`}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </Card>
+      </section>
 
-			<div className="flex items-center justify-end gap-2">
-			  {!finished && <button onClick={start} disabled={running} className={`px-4 py-2 rounded-lg ${running? 'bg-slate-700 cursor-not-allowed':'bg-indigo-700 hover:bg-indigo-600'}`}>{running? '渡劫中…':'開始渡劫'}</button>}
-			  {finished && <button onClick={()=> setState((p)=> ({ ...p, open:false }))} className="px-4 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-600">確定</button>}
-			</div>
+      {/* 突破 / 渡劫 / 飛升 */}
+      <section className="max-w-6xl mx-auto mt-6 grid md:grid-cols-2 gap-6">
+        <Card title="突破境界">
+          {nextRealm ? (
+            <>
+              <div className="text-sm text-slate-300">
+                目標：{nextRealm.name}　需要修為：{fmt(nextRealm.costQi)}
+                {nextRealm.key === "dujie" && <span className="ml-2 text-indigo-300">（將進入「渡劫」）</span>}
+              </div>
+              {nextRealm.baseChance != null && (
+                <div className="text-xs text-slate-400 mt-1">基礎成功率：約 {(nextRealm.baseChance*100).toFixed(0)}%</div>
+              )}
+              <div className="flex flex-wrap gap-2 mt-3">
+                <button onClick={()=>tryBreakthrough(false)} className="px-4 py-2 rounded-lg bg-rose-700 hover:bg-rose-600">嘗試突破</button>
+                <button onClick={()=>tryBreakthrough(true)} className="px-4 py-2 rounded-lg bg-amber-700 hover:bg-amber-600">道心輔助突破（-1道心）</button>
+              </div>
+            </>
+          ) : (
+            <div className="text-sm text-slate-300">已達當前系統可見的最高境界。</div>
+          )}
+        </Card>
 
-			<style>{`
-			  @keyframes bolt { 0%,100%{ opacity:.2 } 20%{ opacity:1 } 40%{ opacity:.3 } 60%{ opacity:.9 } 80%{ opacity:.4 } }
-			  .animate-bolt{ animation: bolt .6s ease-in-out infinite }
-			`}</style>
-		  </div>
-		</div>
-	  );
-	}
+        <Card title="飛升">
+          <div className="text-sm text-slate-300">
+            條件：達到最終境界且修為 ≥ 100,000,000。
+          </div>
+          <div className="mt-3">
+            <button
+              onClick={ascend}
+              disabled={!canAscend}
+              className={`px-4 py-2 rounded-lg ${canAscend? 'bg-emerald-700 hover:bg-emerald-600':'bg-slate-700 cursor-not-allowed'}`}
+            >
+              {canAscend? '飛升成仙！' : '尚未滿足條件'}
+            </button>
+          </div>
+        </Card>
+      </section>
+
+      {/* 存檔 / 匯入 / 自檢 */}
+      <section className="max-w-6xl mx-auto mt-6 grid md:grid-cols-2 gap-6">
+        <Card title="存檔 / 匯入">
+          <div className="flex flex-wrap gap-2">
+            <button onClick={exportSave} className="px-4 py-2 rounded-lg bg-sky-700 hover:bg-sky-600">匯出到剪貼簿</button>
+            <button onClick={hardReset} className="px-4 py-2 rounded-lg bg-rose-800 hover:bg-rose-700">重置存檔</button>
+          </div>
+          <div className="mt-3">
+            <textarea
+              value={importText}
+              onChange={(e)=>setImportText(e.target.value)}
+              placeholder="貼上匯出的 Base64 存檔字串…"
+              className="w-full h-24 rounded-lg bg-black/40 border border-slate-700 p-2 text-sm"
+            />
+            <button onClick={importSave} className="mt-2 px-4 py-2 rounded-lg bg-amber-700 hover:bg-amber-600">匯入存檔</button>
+          </div>
+        </Card>
+
+        <Card title="自檢 / 測試">
+          <ul className="text-sm space-y-1">
+            {tests.map((t,i)=> (
+              <li key={i} className={`flex items-center gap-2 ${t.pass?'text-emerald-300':'text-rose-300'}`}>
+                <span>{t.pass? '✓':'✗'}</span>
+                <span>{t.name}</span>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      </section>
+
