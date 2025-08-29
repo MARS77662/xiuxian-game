@@ -1,5 +1,6 @@
 "use client";
-export const dynamic = "force-dynamic";
+
+export default function XiuXianPage() {
 
 // （可選）明確宣告在 Node.js 執行
 export const runtime = "nodejs";
