@@ -19,11 +19,15 @@ const ARTIFACTS = {
   zhenpan: { key: "zhenpan", name: "鎮仙陣盤", desc: "突破成功 +8%", clickPct: 0, autoPct: 0, brPct: 0.08, cost: 2000, unlockRealmIndex: 4 },
 };
 
-const fmt = (n) =>
-  n >= 1e12 ? `${(n / 1e12).toFixed(2)}兆` :
-  n >= 1e8  ? `${(n / 1e8).toFixed(2)}億` :
-  n >= 1e4  ? `${(n / 1e4).toFixed(2)}萬` :
-  Math.floor(n).toLocaleString();
+// 取代原本的 fmt
+const fmt = (n) => {
+  if (n >= 1e12) return `${(n / 1e12).toFixed(2)}兆`;
+  if (n >= 1e8)  return `${(n / 1e8).toFixed(2)}億`;
+  if (n >= 1e4)  return `${(n / 1e4).toFixed(2)}萬`;
+  // 小於一萬：保留 1 位小數（但整數不加小數點）
+  return Number.isInteger(n) ? n.toLocaleString() : n.toFixed(1);
+};
+
 
 const costOfSkill = (base, growth, lv) => Math.ceil(base * Math.pow(growth, lv));
 
@@ -254,7 +258,7 @@ export default function XiuXianLunDaoApp() {
       <section className="max-w-6xl mx-auto mt-6 grid md:grid-cols-3 gap-6">
         <Card title="打坐修煉">
           <div className="text-sm text-slate-300">
-            每次點擊 +{fmt(clickGain)} 靈力；每秒自動 +{fmt(autoPerSec)} 靈力
+            每次點擊 +{clickGain.toFixed(1)} 靈力；每秒自動 +{autoPerSec.toFixed(1)} 靈力
           </div>
           <div className="flex flex-wrap gap-2 mt-3">
             <button onClick={cultivate} className="px-4 py-2 rounded-lg bg-indigo-700 hover:bg-indigo-600">修煉</button>
@@ -459,7 +463,7 @@ function Leaderboard({ s }){
   );
 }
 
-function MeditationHeroImg({ realmKey }){
+function MeditationHeroImg({ realmKey }) {
   const stageKey = useMemo(() => {
     if (realmKey === 'daluo') return 'daluo';
     if (realmKey === 'dujie') return 'dujie';
@@ -467,31 +471,26 @@ function MeditationHeroImg({ realmKey }){
     if (immortalSet.has(realmKey)) return 'zhenxian';
     return realmKey;
   }, [realmKey]);
+
   const bg = BACKGROUNDS[stageKey] || BACKGROUNDS[realmKey] || BACKGROUNDS._default;
+
   return (
-    <div className="relative max-w-6xl mx-auto mt-6 overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-slate-900/60 to-black/60">
-      <div className="absolute inset-0 -z-10">
-        <img src={bg} alt="bg" className="w-full h-full object-cover opacity-50" />
-      </div>
-      <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
-        <defs>
-          <radialGradient id="g2" cx="50%" cy="40%" r="60%">
-            <stop offset="0%" stopColor="rgba(99,102,241,0.35)"/>
-            <stop offset="60%" stopColor="rgba(99,102,241,0.08)"/>
-            <stop offset="100%" stopColor="transparent"/>
-          </radialGradient>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#g2)"/>
-      </svg>
-      <div className="relative flex flex-col md:flex-row items-center justify-center px-6 py-16 md:py-20 gap-4 md:gap-10 min-h-[220px]">
-        <div className="text-center md:text-left max-w-[520px]">
-          <h3 className="text-2xl md:text-3xl font-semibold leading-tight">入定·吐納</h3>
-          <p className="text-slate-300 mt-1 leading-relaxed">隨呼吸起伏，靈氣自丹田匯聚——點擊修煉或嘗試突破吧。</p>
+    <div className="relative max-w-6xl mx-auto mt-6 overflow-hidden rounded-2xl border border-white/10">
+      {/* 背景 */}
+      <img src={bg} alt="背景" className="absolute inset-0 w-full h-full object-cover opacity-50 -z-10" />
+
+      {/* 人物插圖 */}
+      <div className="relative flex flex-col md:flex-row items-center justify-center px-6 py-16 md:py-20 gap-4 md:gap-10">
+        <img src="/meditate.png" alt="打坐修仙" className="w-64 sm:w-72 md:w-[420px] drop-shadow-xl animate-float-slow" />
+        <div className="ml-0 md:ml-10 text-center md:text-left max-w-[420px]">
+          <h3 className="text-2xl md:text-3xl font-semibold">入定·吐納</h3>
+          <p className="text-slate-300 mt-1">隨呼吸起伏，靈氣自丹田匯聚——點擊修煉或嘗試突破吧。</p>
         </div>
       </div>
     </div>
   );
 }
+
 
 function DujieModal({ state, setState, artBreakBonus, onFinish }){
   const { open, useDaoHeart, running, logs, finished, nextName, costQi } = state;
