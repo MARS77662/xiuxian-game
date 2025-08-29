@@ -4,14 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { REALMS } from "@/data/realms";
 import { SKILLS } from "@/data/skills";
 import { BACKGROUNDS } from "@/data/backgrounds";
-export default function XiuXianPage() {
 
-
-const [clicked, setClicked] = useState(false);
-const SAVE_KEY = "xiuxian-save-v1";
-const BASE_AUTO_PER_SEC = 1;
-const BASE_CLICK_GAIN = 1;
-const QI_TO_STONE = 100;
 
 const ARTIFACTS = {
   qingxiao: { key: "qingxiao", name: "青霄劍", desc: "點擊效率 +25%", clickPct: 0.25, autoPct: 0, brPct: 0, cost: 500, unlockRealmIndex: 2 },
@@ -32,22 +25,21 @@ const fmt = (n) => {
 const costOfSkill = (base, growth, lv) => Math.ceil(base * Math.pow(growth, lv));
 
 // ====== 初始存檔 ======
-const defaultState = () => ({
-  qi: 0,
-  stones: 0,
-  daoHeart: 0,
-  realmIndex: 0,
-  skills: { tuna: 0, wuxing: 0, jiutian: 0 },
-  artifacts: { qingxiao: false, zijinhu: false, zhenpan: false },
-  ascensions: 0,
-  talent: { auto: 0, click: 0 },
+c const defaultState = () => ({
+   qi: 0,
+   stones: 0,
+   daoHeart: 0,
+   realmIndex: 0,
+   skills: { tuna: 0, wuxing: 0, jiutian: 0 },
+   artifacts: { qingxiao: false, zijinhu: false, zhenpan: false },
+   ascensions: 0,
+   talent: { auto: 0, click: 0 },
++  playerName: "散仙",
+   meta: { starterGift: false },
+   login: { last: "", streak: 0, dayClaimed: false },
+   lastTick: Date.now(),
+ });
 
-  // ★ 新增：新手/每日
-  meta: { starterGift: false },                // 是否已領新手禮包
-  login: { last: "", streak: 0, dayClaimed: false }, // 最後登入日期、連續天數、今日是否已領
-
-  lastTick: Date.now(),
-});
 
 const DEV_SHOW_TESTS = true;
 function runSelfTests() {
@@ -60,6 +52,11 @@ function runSelfTests() {
 }
 
 export default function XiuXianLunDaoApp() {
+	const [clicked, setClicked] = useState(false);
+	const SAVE_KEY = "xiuxian-save-v1";
+	const BASE_AUTO_PER_SEC = 1;
+	const BASE_CLICK_GAIN = 1;
+	const QI_TO_STONE = 100;
   const [s, setS] = useState(defaultState);
   const [msg, setMsg] = useState("");
   const [importText, setImportText] = useState("");
@@ -268,7 +265,13 @@ export default function XiuXianLunDaoApp() {
             每次點擊 +{clickGain.toFixed(1)} 靈力；每秒自動 +{autoPerSec.toFixed(1)} 靈力
           </div>
           <div className="flex flex-wrap gap-2 mt-3">
-            <button onClick={cultivate} className="px-4 py-2 rounded-lg bg-indigo-700 hover:bg-indigo-600">修煉</button>
+			<button
++   onClick={cultivate}
++   className={`px-4 py-2 rounded-lg bg-indigo-700 hover:bg-indigo-600 active:scale-95 transition
++               ${clicked ? "ring-4 ring-amber-400/60" : ""}`}
++ >
++   修煉
++ </button>
             <button onClick={refineStones} className="px-4 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-600">煉化靈石</button>
             <button onClick={comprehendDao} className="px-4 py-2 rounded-lg bg-amber-700 hover:bg-amber-600">參悟道心</button>
           </div>
@@ -349,6 +352,12 @@ export default function XiuXianLunDaoApp() {
           </div>
         </Card>
       </section>
+	  {/* 新手/每日 + 排行榜（本地） */}
+<section className="max-w-6xl mx-auto mt-6 grid md:grid-cols-2 gap-6">
+  <RewardsBar s={s} setS={setS} setMsg={setMsg} />
+  <Leaderboard s={s} />
+</section>
+
 
       {/* 存檔 / 匯入 / 自檢 */}
       <section className="max-w-6xl mx-auto mt-6 grid md:grid-cols-2 gap-6">
