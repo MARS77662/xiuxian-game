@@ -9,7 +9,6 @@ export const runtime = "nodejs";
 
 
 export const prerender = false;
-export const dynamic = "force-dynamic";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { REALMS } from "@/data/realms";
