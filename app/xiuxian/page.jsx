@@ -266,12 +266,12 @@ export default function XiuXianLunDaoApp() {
           </div>
           <div className="flex flex-wrap gap-2 mt-3">
 			<button
-+   onClick={cultivate}
-+   className={`px-4 py-2 rounded-lg bg-indigo-700 hover:bg-indigo-600 active:scale-95 transition
-+               ${clicked ? "ring-4 ring-amber-400/60" : ""}`}
-+ >
-+   修煉
-+ </button>
+   onClick={cultivate}
+   className={`px-4 py-2 rounded-lg bg-indigo-700 hover:bg-indigo-600 active:scale-95 transition
+               ${clicked ? "ring-4 ring-amber-400/60" : ""}`}
+ >
+   修煉
+ </button>
             <button onClick={refineStones} className="px-4 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-600">煉化靈石</button>
             <button onClick={comprehendDao} className="px-4 py-2 rounded-lg bg-amber-700 hover:bg-amber-600">參悟道心</button>
           </div>
