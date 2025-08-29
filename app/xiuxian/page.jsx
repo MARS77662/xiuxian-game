@@ -34,7 +34,7 @@ const defaultState = () => ({
    artifacts: { qingxiao: false, zijinhu: false, zhenpan: false },
    ascensions: 0,
    talent: { auto: 0, click: 0 },
-+  playerName: "散仙",
+   playerName: "散仙",
    meta: { starterGift: false },
    login: { last: "", streak: 0, dayClaimed: false },
    lastTick: Date.now(),
