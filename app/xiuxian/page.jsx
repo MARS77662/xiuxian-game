@@ -1,6 +1,9 @@
-	"use client";
-	export const dynamic = 'force-dynamic';   // 避免 Next.js 試圖在 build 時預先產生此頁
-	// 或者：export const revalidate = 0;
+"use client";
+
+export const prerender = false;     // 明確關閉本頁的預先產生
+export const dynamic = "force-dynamic"; // 強制動態（不快取、走 CSR）
+export const revalidate = 0;        // 不做 ISR
+
 
 	import React, { useEffect, useMemo, useRef, useState } from "react";
 
