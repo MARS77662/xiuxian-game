@@ -1,11 +1,13 @@
 	"use client";
+	export const dynamic = 'force-dynamic';   // 避免 Next.js 試圖在 build 時預先產生此頁
+	// 或者：export const revalidate = 0;
 
 	import React, { useEffect, useMemo, useRef, useState } from "react";
 
 	// === 外部資料 ===
-	import { REALMS } from "@/data/realms.js";
-	import { SKILLS } from "@/data/skills.js";
-	import { BACKGROUNDS } from "@/data/backgrounds.js";
+	import { REALMS } from "@/data/realms";
+	import { SKILLS } from "@/data/skills";
+	import { BACKGROUNDS } from "@/data/backgrounds";
 
 	// ====== 常數定義 ======
 	const SAVE_KEY = "xiuxian-save-v1";
