@@ -463,6 +463,7 @@ function Leaderboard({ s }){
   );
 }
 
+// === 打坐修仙（背景依境界 + 插圖 + 動畫全開）===
 function MeditationHeroImg({ realmKey }) {
   const stageKey = useMemo(() => {
     if (realmKey === 'daluo') return 'daluo';
@@ -472,24 +473,108 @@ function MeditationHeroImg({ realmKey }) {
     return realmKey;
   }, [realmKey]);
 
+  // 1) 背景路徑（必須在 /public/ 下）
   const bg = BACKGROUNDS[stageKey] || BACKGROUNDS[realmKey] || BACKGROUNDS._default;
 
   return (
-    <div className="relative max-w-6xl mx-auto mt-6 overflow-hidden rounded-2xl border border-white/10">
-      {/* 背景 */}
-      <img src={bg} alt="背景" className="absolute inset-0 w-full h-full object-cover opacity-50 -z-10" />
+    <div className="relative max-w-6xl mx-auto mt-6 overflow-hidden rounded-2xl border border-white/10 bg-[#0f172a]">
+      {/* 背景圖：不要用負 z-index，改用 z-0，絕對覆蓋容器 */}
+      <img
+        src={bg}
+        alt="背景"
+        className="absolute inset-0 w-full h-full object-cover opacity-60 z-0 select-none pointer-events-none"
+      />
 
-      {/* 人物插圖 */}
-      <div className="relative flex flex-col md:flex-row items-center justify-center px-6 py-16 md:py-20 gap-4 md:gap-10">
-        <img src="/meditate.png" alt="打坐修仙" className="w-64 sm:w-72 md:w-[420px] drop-shadow-xl animate-float-slow" />
-        <div className="ml-0 md:ml-10 text-center md:text-left max-w-[420px]">
-          <h3 className="text-2xl md:text-3xl font-semibold">入定·吐納</h3>
-          <p className="text-slate-300 mt-1">隨呼吸起伏，靈氣自丹田匯聚——點擊修煉或嘗試突破吧。</p>
+      {/* 柔光漸層（在背景上層，內容下層） */}
+      <svg className="absolute inset-0 w-full h-full z-10 pointer-events-none" preserveAspectRatio="none">
+        <defs>
+          <radialGradient id="heroGlow" cx="50%" cy="40%" r="60%">
+            <stop offset="0%" stopColor="rgba(99,102,241,0.35)"/>
+            <stop offset="60%" stopColor="rgba(99,102,241,0.10)"/>
+            <stop offset="100%" stopColor="transparent"/>
+          </radialGradient>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#heroGlow)"/>
+      </svg>
+
+      {/* 靈氣漣漪（在人物下方發光） */}
+      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none">
+        <div className="aura w-44 h-44 rounded-full"/>
+        <div className="aura w-64 h-64 rounded-full delay-300"/>
+        <div className="aura w-80 h-80 rounded-full delay-700"/>
+      </div>
+
+      {/* 氣旋（旋轉光帶） */}
+      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 pointer-events-none select-none">
+        <div className="vortex w-[540px] h-[540px] opacity-[.18]"/>
+        <div className="vortex w-[420px] h-[420px] opacity-[.22] rotate-180"/>
+      </div>
+
+      {/* 星火粒子（繞圈） */}
+      <div className="absolute inset-0 z-10 pointer-events-none">
+        {Array.from({length: 81}).map((_,i)=> (
+          <span key={i} style={{"--a": `${(i/18)*360}deg`, "--r": `${120 + (i%6)*18}px`}} className="spark"/>
+        ))}
+      </div>
+
+      {/* 主要內容（人物插圖 + 文案） */}
+      <div className="relative z-30 flex flex-col md:flex-row items-center justify-center px-6 py-16 md:py-20 gap-4 md:gap-10">
+        {/* 注意：確保 /public/meditate.png 存在；想換檔名就改這裡 */}
+        <img
+          src="/meditate.png"
+          alt="打坐修仙"
+          className="w-64 sm:w-72 md:w-[420px] drop-shadow-xl animate-float-slow select-none pointer-events-none"
+        />
+        <div className="ml-0 md:ml-10 text-center md:text-left max-w-[520px]">
+          <h3 className="text-2xl md:text-3xl font-semibold leading-tight">入定·吐納</h3>
+          <p className="text-slate-300 mt-1 leading-relaxed">
+            隨呼吸起伏，靈氣自丹田匯聚——點擊修煉或嘗試突破吧。
+          </p>
         </div>
       </div>
+
+      {/* 內嵌樣式（動畫） */}
+      <style>{`
+        /* 漂浮 */
+        @keyframes float-slow { 0%,100%{ transform: translateY(0) } 50%{ transform: translateY(-6px) } }
+        .animate-float-slow{ animation: float-slow 5s ease-in-out infinite; }
+
+        /* 漣漪 */
+        @keyframes aura { 0%{ transform: scale(0.6); opacity: .35 }
+                          70%{ opacity:.08 } 100%{ transform: scale(1.4); opacity: 0 } }
+        .aura{ position:absolute; left:-50%; top:-50%; transform:translate(50%,50%);
+               background:radial-gradient(circle, rgba(168,85,247,.25),
+               rgba(59,130,246,.12) 40%, transparent 70%);
+               animation:aura 3.6s linear infinite; filter: blur(2px); }
+        .aura.delay-300{ animation-delay:.3s }
+        .aura.delay-700{ animation-delay:.7s }
+
+        /* 氣旋 */
+        @keyframes spin { to { transform: rotate(360deg) } }
+        .vortex{ position:absolute; left:50%; top:50%;
+                 transform:translate(-50%,-50%);
+                 border-radius:9999px;
+                 background:conic-gradient(from 0deg,
+                   rgba(255,255,255,.0) 0deg,
+                   rgba(255,255,255,.55) 30deg,
+                   rgba(255,255,255,.0) 120deg,
+                   rgba(255,255,255,.0) 360deg);
+                 filter: blur(6px);
+                 animation: spin 18s linear infinite;
+                 mask-image: radial-gradient(circle at center, transparent 38%, black 60%); }
+
+        /* 星火粒子 */
+        @keyframes orbit { to { transform: rotate(var(--a)) translateX(var(--r)) rotate(calc(-1*var(--a))) } }
+        @keyframes twinkle { 0%,100%{ opacity:.2; box-shadow:0 0 0 0 rgba(255,255,255,.0) }
+                             50%{ opacity:1; box-shadow:0 0 12px 3px rgba(255,255,255,.35) } }
+        .spark{ position:absolute; left:50%; top:50%; width:3px; height:3px; background:#fff; border-radius:9999px;
+                transform-origin: -var(--r) 0;
+                animation: orbit 6s linear infinite, twinkle 3.2s ease-in-out infinite; }
+      `}</style>
     </div>
   );
 }
+
 
 
 function DujieModal({ state, setState, artBreakBonus, onFinish }){
