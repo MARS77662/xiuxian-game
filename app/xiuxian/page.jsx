@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import AppInner from "./AppInner";
+import UserInfo from "./components/UserInfo";
 
 /* ========= 常量 ========= */
 const SAVE_KEY = "xiuxian-save-v1";     // AppInner 自動存檔
@@ -211,33 +212,61 @@ function Creator({ onDone }){
                 ))}
               </div>
 
-              {/* 門派清單 */}
-              <div className="grid sm:grid-cols-2 gap-3">
-                {sectList.map(s=> (
-                  <button
-                    key={s.key}
-                    onClick={()=> setSectKey(s.key)}
-                    className={`text-left rounded-2xl px-4 py-3 border transition
-                    ${sectKey===s.key ? "border-indigo-400 bg-indigo-500/15 shadow-[0_0_0_2px_rgba(99,102,241,.25)]"
-                                       : "border-white/10 hover:border-white/30 hover:bg-white/5"}`}
-                  >
-                    <div className="text-lg font-semibold">{s.name}</div>
-                    <div className="text-slate-400 text-sm mt-1">{s.desc}</div>
-                    <div className="text-xs text-slate-400 mt-1">起始場景：{s.startScene || "—"}</div>
-                    {s.tags && <div className="mt-2 flex flex-wrap gap-1">
-                      {s.tags.map(t=>(<span key={t} className="text-[11px] px-2 py-0.5 rounded-full bg-white/5 border border-white/10">{t}</span>))}
-                    </div>}
-                    {s.bonuses && Object.keys(s.bonuses).length>0 && (
-                      <div className="mt-2 text-xs text-emerald-300">
-                        加成：{Object.entries(s.bonuses).map(([k,v])=> `${k}+${v}`).join("，")}
-                      </div>
-                    )}
-                    {sectKey===s.key && <div className="text-xs mt-2 text-indigo-300">已選</div>}
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
+              {/* 門派清單（含門派圖片） */}
+		<div className="grid sm:grid-cols-2 gap-3">
+		  {sectList.map(s=> {
+			const img =
+			  SECT_SCENE_BG[s.key] ||
+			  SECT_SCENE_FALLBACK[type] ||
+			  BG_BY_FACTION[type] ||
+			  BG_DEFAULT;
+
+			return (
+			  <button
+				key={s.key}
+				onClick={()=> setSectKey(s.key)}
+				className={`text-left rounded-2xl border overflow-hidden transition group
+				${sectKey===s.key
+				  ? "border-indigo-400 bg-indigo-500/15 shadow-[0_0_0_2px_rgba(99,102,241,.25)]"
+				  : "border-white/10 hover:border-white/30 hover:bg-white/5"}`}
+			  >
+				{/* 門派圖 */}
+				<div className="relative h-36 w-full overflow-hidden">
+				  <img
+					src={img}
+					alt={s.name}
+					className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition"
+					onError={(e)=>{ e.currentTarget.style.display="none"; }}
+				  />
+				  <div className="absolute inset-0 bg-black/30" />
+				  <div className="absolute bottom-2 left-3 right-3 text-lg font-semibold drop-shadow">
+					{s.name}
+				  </div>
+				</div>
+
+				{/* 文字內容 */}
+				<div className="px-4 py-3">
+				  <div className="text-slate-400 text-sm">{s.desc}</div>
+				  <div className="text-xs text-slate-400 mt-1">起始場景：{s.startScene || "—"}</div>
+				  {s.tags && (
+					<div className="mt-2 flex flex-wrap gap-1">
+					  {s.tags.map(t=>(
+						<span key={t} className="text-[11px] px-2 py-0.5 rounded-full bg-white/5 border border-white/10">{t}</span>
+					  ))}
+					</div>
+				  )}
+				  {s.bonuses && Object.keys(s.bonuses).length>0 && (
+					<div className="mt-2 text-xs text-emerald-300">
+					  加成：{Object.entries(s.bonuses).map(([k,v])=> `${k}+${v}`).join("，")}
+					</div>
+				  )}
+				  {sectKey===s.key && <div className="text-xs mt-2 text-indigo-300">已選</div>}
+				</div>
+			  </button>
+			);
+		  })}
+		</div>
+
 
           {step===2 && (
             <>
@@ -455,6 +484,15 @@ function Hub({ profile, onEnterCultivate }){
   const bg = profile?.sectSceneBg || SECT_SCENE_BG[sectKey] || SECT_SCENE_FALLBACK[faction] || BG_BY_FACTION[faction] || BG_DEFAULT;
 
   const [tab, setTab] = useState("sect"); // sect | quests | explore | demon | market
+    const [ui, setUi] = useState(() => buildUserInfoState(profile));
+
+// 每秒刷新一次，讓修煉時（AppInner 更新）左上角數值會即時跟到
+useEffect(() => {
+  setUi(buildUserInfoState(profile));
+  const id = setInterval(() => setUi(buildUserInfoState(profile)), 1000);
+  return () => clearInterval(id);
+}, [profile]);
+
 
   return (
     <div className="min-h-screen relative text-slate-100">
@@ -596,6 +634,27 @@ export default function XiuxianPage(){
       </>
     );
   }
+	function buildUserInfoState(profile){
+	  // 讀你遊戲的自動存檔
+	  let save = null;
+	  try { save = JSON.parse(localStorage.getItem(SAVE_KEY) || "null"); } catch {}
+
+	  // 由創角檔與存檔組合出顯示狀態（缺的用預設）
+	  const realm = save?.realm || { key: "lianqi", name: "練氣三層" };
+	  return {
+		nickname: profile?.name || "無名散修",
+		sect: profile?.sectName || profile?.faction || "散修",
+		realm,
+		qi:  Number(save?.qi ?? 230),
+		qiMax: Number(save?.qiMax ?? 500),
+		xp:  Number(save?.xp ?? 120),
+		xpMax: Number(save?.xpMax ?? 300),
+		gold: Number(save?.gold ?? 1200),
+		gem:  Number(save?.gem ?? 50),
+		lifeDays: Number(save?.lifeDays ?? 365),
+		avatar: save?.avatar || "/icon-192x192.png",
+	  };
+	}
 
   if (phase === "story") {
     const prof = player || (()=> { try{ return JSON.parse(localStorage.getItem(PROFILE_KEY)||"null"); }catch{return null;} })();
