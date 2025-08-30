@@ -8,6 +8,84 @@
 	   常量
 	   =========================================================== */
 	const SAVE_KEY = "xiuxian-save-v1";
+
+		const DEFAULT_STATE = {
+		  qi: 0,
+		  stones: 0,
+		  daoHeart: 0,
+		  realmIndex: 0,
+		  skills: {
+			tuna:   { level: 0, exp: 0, unlocked: true },
+			wuxing: { level: 0, exp: 0, unlocked: false },
+			jiutian:{ level: 0, exp: 0, unlocked: false }
+		  },
+		  artifacts: { qingxiao: false, zijinhu: false, zhenpan: false },
+		  ascensions: 0,
+		  talent: { auto: 0, click: 0 },
+		  playerName: "散仙",
+		  meta: { starterGift: false },
+		  login: { last: "", streak: 0, dayClaimed: false },
+		  lastTick: 0,
+		  lifespan: {
+			maxDays: maxDaysOf(0),
+			leftDays: maxDaysOf(0),
+		  },
+		  __ver: 3, // 狀態版本
+		};
+
+		/* ---------- 深合併工具 ---------- */
+		function deepMerge(base, patch){
+		  const out = Array.isArray(base) ? [...base] : { ...base };
+		  if (patch && typeof patch === "object") {
+			for (const k of Object.keys(patch)) {
+			  if (patch[k] && typeof patch[k] === "object" && !Array.isArray(patch[k])) {
+				out[k] = deepMerge(base[k] || {}, patch[k]);
+			  } else {
+				out[k] = patch[k];
+			  }
+			}
+		  }
+		  return out;
+		}
+
+		/* ---------- 遷移（版本升級、缺欄位補齊） ---------- */
+		function migrate(state){
+		  state.skills ||= {};
+		  state.skills.tuna ||= { level: 0, exp: 0, unlocked: true };
+
+		  if (!state.__ver || state.__ver < 3) {
+			// 這裡可以做更多升級處理
+			state.__ver = 3;
+		  }
+		  return state;
+		}
+
+		/* ---------- 載入狀態 ---------- */
+		function loadState(){
+		  try {
+			const raw = localStorage.getItem(SAVE_KEY);
+			if (!raw) return structuredClone(DEFAULT_STATE);
+			const saved = JSON.parse(raw);
+			const merged = deepMerge(DEFAULT_STATE, saved);
+			return migrate(merged);
+		  } catch {
+			return structuredClone(DEFAULT_STATE);
+		  }
+		}
+
+		/* ---------- 存檔 ---------- */
+		function saveState(state){
+		  try {
+			localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+			window.dispatchEvent(new Event("xiuxian:save"));
+		  } catch(e){
+			console.error("save error", e);
+		  }
+		}
+
+		// 遊戲初始化用這個：
+		const state = loadState();
+
 	const BASE_AUTO_PER_SEC = 100;     // 每秒自動靈力（會再乘各種加成）
 	const BASE_CLICK_GAIN   = 500;     // 每次點擊靈力
 	const QI_TO_STONE       = 100;     // 多少靈力煉 1 枚靈石
@@ -153,7 +231,12 @@
 	  stones: 0,
 	  daoHeart: 0,
 	  realmIndex: 0,
-	  skills: { tuna: 0, wuxing: 0, jiutian: 0 },
+	  skills: {
+	  tuna:   { level: 0, exp: 0, unlocked: true },
+	  wuxing: { level: 0, exp: 0, unlocked: false },
+	  jiutian:{ level: 0, exp: 0, unlocked: false }
+	},
+
 	  artifacts: { qingxiao: false, zijinhu: false, zhenpan: false },
 	  ascensions: 0,
 	  talent: { auto: 0, click: 0 },
