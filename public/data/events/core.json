@@ -1,0 +1,89 @@
+{
+  "events": [
+    {
+      "id": "war_refugees_1",
+      "title": "亂世·難民潮",
+      "brief": "戰火蔓延，百姓流離失所。",
+      "weight": 5,
+      "requires": { "minRealmRank": 1 },
+      "body": "烽煙自北境而來，一路流民求饒。\n你會如何處置？",
+      "choices": [
+        {
+          "key": "aid",
+          "text": "施粥救濟（耗靈石50，功德+15，耗時三炷香）",
+          "hint": "需要金錢與時間，但能積累功德。",
+          "requires": { "minGold": 50 },
+          "effects": { "gold": -50, "merit": 15, "time": { "incense": 3 }, "flagsAdd": ["aid_refugees"] }
+        },
+        {
+          "key": "escort",
+          "text": "護送入城（經驗+30，功德+8，耗時一日）",
+          "effects": { "xp": 30, "merit": 8, "time": { "days": 1 }, "flagsAdd": ["escort_refugees"] }
+        },
+        {
+          "key": "ignore",
+          "text": "袖手旁觀（業力+5）",
+          "hint": "也許你有自己的打算。",
+          "effects": { "sin": 5 }
+        }
+      ]
+    },
+    {
+      "id": "beast_rampage_1",
+      "title": "妖獸出沒",
+      "brief": "山林間妖氣翻湧，村口驚慌失措。",
+      "weight": 6,
+      "requires": {},
+      "body": "一頭鐵背妖豬衝破樹叢，衝向村落。",
+      "choices": [
+        {
+          "key": "slay",
+          "text": "出手斬妖（真氣-40，經驗+40，功德+6，耗時一炷香）",
+          "effects": { "qi": -40, "xp": 40, "merit": 6, "time": { "incense": 1 }, "flagsAdd": ["slain_beast"] }
+        },
+        {
+          "key": "alert",
+          "text": "通知官府（功德+3）",
+          "effects": { "merit": 3 }
+        },
+        {
+          "key": "leave",
+          "text": "視而不見（業力+2）",
+          "effects": { "sin": 2 }
+        }
+      ]
+    },
+    {
+      "id": "love_fate_foreshadow",
+      "title": "偶遇·一縷紅線",
+      "brief": "情緣似有似無，撩動心弦。",
+      "weight": 2,
+      "requires": { "absentFlags": ["love_started"] },
+      "body": "細雨霏霏，你在橋邊與一人擦肩而過，似曾相識。",
+      "choices": [
+        {
+          "key": "talk",
+          "text": "上前搭話（功德+1，耗時一炷香，開啟情緣旗標）",
+          "effects": { "merit": 1, "time": { "incense": 1 }, "flagsAdd": ["love_started"], "enqueue": ["love_branch_1"] }
+        },
+        {
+          "key": "watch",
+          "text": "默然注視（無事發生）",
+          "effects": {}
+        }
+      ]
+    },
+    {
+      "id": "love_branch_1",
+      "title": "情劫·小試",
+      "brief": "緣起緣滅，心能否自持？",
+      "weight": 1,
+      "requires": { "requiredFlags": ["love_started"] },
+      "body": "對方遞來一方手帕，眉目含情。",
+      "choices": [
+        { "key": "accept", "text": "收下（心性考驗：功德+2，經驗+10）", "effects": { "merit": 2, "xp": 10 } },
+        { "key": "refuse", "text": "婉拒（心更堅，功德+1）", "effects": { "merit": 1 } }
+      ]
+    }
+  ]
+}

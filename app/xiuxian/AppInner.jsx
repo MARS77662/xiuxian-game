@@ -2,12 +2,56 @@
 
 	import { useEffect, useRef, useState, useMemo } from "react";
 	import { BACKGROUNDS } from "../../data/backgrounds";
+	import { punishQiOverflow } from "./lib/qiOverflow";
+
+
+
+
 
 	/* ---------- 常量（你可依需求微調） ---------- */
 	const SAVE_KEY = "xiuxian-save-v1";
-	const BASE_AUTO_PER_SEC = 10000;   // 每秒自動靈力（會再乘上各種加成）
-	const BASE_CLICK_GAIN   = 5000;    // 每次點擊靈力
-	const QI_TO_STONE       = 200;     // 多少靈力可煉 1 枚靈石
+	const SAVE_EVENT = "xiuxian:save";
+	const BASE_AUTO_PER_SEC = 100;   // 每秒自動靈力（會再乘上各種加成）
+	const BASE_CLICK_GAIN   = 500;    // 每次點擊靈力
+	const QI_TO_STONE       = 100;     // 多少靈力可煉 1 枚靈石
+	// …在每次改動 qi 之後
+	punishQiOverflow();
+	
+	/* ====== 壽元相關常數與工具（放在 defaultState 之前） ====== */
+	// 各境界壽元上限（年）—自己可調
+	const LIFE_YEARS_BY_REALM = [30, 60, 120, 240, 480, 960, 1500, 3000];
+
+	// 年→天
+	const toDays = y => Math.round(y * 365);
+
+
+	// ✅ 每「現實 1 秒」要扣的壽元（天）
+	// 例：1/360 代表 6 分鐘扣 1 天；你想慢一點就改 1/900（15 分鐘扣 1 天）
+	const LIFE_DECAY_PER_SEC = 1 / 360;
+
+	const yearsToDays = toDays;  // 👈 加這行別名，讓 yearsToDays 也可用
+
+
+	// 依境界計算 maxDays
+	const maxDaysOf = (realmIndex) =>
+	  toDays(LIFE_YEARS_BY_REALM[realmIndex] ?? LIFE_YEARS_BY_REALM[0]);
+
+	// 突破時延長壽元：把「新上限 - 舊上限」加到 leftDays，並封頂到新上限
+	function extendLifespan(p, newRealmIndex) {
+	  const oldMax = p.lifespan?.maxDays ?? maxDaysOf(p.realmIndex ?? 0);
+	  const newMax = maxDaysOf(newRealmIndex);
+	  const delta  = Math.max(0, newMax - oldMax);
+	  const left   = Math.min((p.lifespan?.leftDays ?? oldMax) + delta, newMax);
+	  return { ...p, lifespan: { maxDays: newMax, leftDays: left } };
+	}
+
+	// 依「相隔天數」遞減壽元
+	function decayLifespanByDays(p, days) {
+	  if (!days || days <= 0) return p;
+	  const left = Math.max(0, (p.lifespan?.leftDays ?? 0) - days);
+	  return { ...p, lifespan: { ...(p.lifespan || {}), leftDays: left } };
+}
+
 
 	/* ---------- 基礎資料（可替換成你自己的完整表） ---------- */
 	const REALMS = [
@@ -34,6 +78,32 @@
 	  zijinhu:  { key: "zijinhu",  name: "紫金葫",   desc: "自動產出 +15%",   clickPct: 0,    autoPct: 0.15, brPct: 0,    cost: 1000, unlockRealmIndex: 3 },
 	  zhenpan:  { key: "zhenpan",  name: "鎮仙陣盤", desc: "突破成功 +8%",    clickPct: 0,    autoPct: 0,    brPct: 0.08, cost: 2000, unlockRealmIndex: 4 },
 	};
+	
+	/* ---------- 存檔工具（統一欄位 + 讀寫） ---------- */
+	const readSave = () => {
+	  try { return JSON.parse(localStorage.getItem(SAVE_KEY) || "null"); } catch { return null; }
+	};
+
+	// 把 save 物件統一成 stones/gold/spiritStone 同步
+	const normalizeSave = (obj = {}) => {
+	  const stones = Number(
+		obj.stones ??
+		obj.spiritStone ??
+		obj.gold ??
+		0
+	  );
+
+	  return {
+		...obj,
+		stones,
+		gold: stones,          // 同步別名
+		spiritStone: stones,   // 同步別名
+	  };
+	};
+
+	const writeSave = (obj) => {
+	  try { localStorage.setItem(SAVE_KEY, JSON.stringify(normalizeSave(obj))); } catch {}
+	};
 
 	/* ---------- 工具 ---------- */
 	const fmt = (n) => {
@@ -45,24 +115,32 @@
 	const costOfSkill = (base, growth, lv) => Math.ceil(base * Math.pow(growth, lv));
 
 	/* ---------- 初始存檔 ---------- */
-	const defaultState = () => ({
-	  qi: 0,
-	  stones: 0,
-	  daoHeart: 0,
-	  realmIndex: 0,
-	  skills: { tuna: 0, wuxing: 0, jiutian: 0 },
-	  artifacts: { qingxiao: false, zijinhu: false, zhenpan: false },
-	  ascensions: 0,
-	  talent: { auto: 0, click: 0 },
-	  playerName: "散仙",
-	  meta: { starterGift: false },
-	  login: { last: "", streak: 0, dayClaimed: false },
-	  lastTick: 0,
-	});
+	 const defaultState = () => ({
+	   qi: 0,
+	   stones: 0,
+	   daoHeart: 0,
+	   realmIndex: 0,
+	   skills: { tuna: 0, wuxing: 0, jiutian: 0 },
+	   artifacts: { qingxiao: false, zijinhu: false, zhenpan: false },
+	   ascensions: 0,
+	   talent: { auto: 0, click: 0 },
+	   playerName: "散仙",
+	   meta: { starterGift: false },
+	   login: { last: "", streak: 0, dayClaimed: false },
+	   lastTick: 0,
+		lifespan: {
+		maxDays: yearsToDays(LIFE_YEARS_BY_REALM[0]),   // 以當前境界初始化上限
+		leftDays: yearsToDays(LIFE_YEARS_BY_REALM[0]),
+		},
+	 });
 
 	/* ============================ 主元件 ============================ */
 	export default function AppInner() {
-	  const [s, setS] = useState(defaultState);
+	  const [s, setS] = useState(() => {
+	  const saved = normalizeSave(readSave() || null);
+	  // 讀到存檔就套進預設；否則用預設
+	  return saved ? { ...defaultState(), ...saved } : defaultState();
+	});
 	  const [msg, setMsg] = useState("");
 	  const [importText, setImportText] = useState("");
 	  const tickRef = useRef(null);
@@ -72,25 +150,82 @@
 		finished: false, nextName: "", costQi: 0,
 	  });
 
-	  /* 讀檔 + 每日登入 */
-	  useEffect(() => {
-		try {
-		  const raw = localStorage.getItem(SAVE_KEY);
-		  if (raw) setS(prev => ({ ...prev, ...JSON.parse(raw) }));
-		} catch {}
-		setS(p => {
-		  const today = new Date().toISOString().slice(0,10);
-		  if (p.login.last !== today)
-			return { ...p, login: { last: today, streak: (p.login.last ? p.login.streak + 1 : 1), dayClaimed: false } };
-		  return p;
-		});
-	  }, []);
+	// 讀檔 + 補齊舊檔欄位 + 每日登入（只在掛載時跑一次）
+	useEffect(() => {
+  setS(prev => {
+    let next = prev;
 
-	  /* 自動存檔 */
-	  useEffect(() => {
-		const id = setInterval(() => localStorage.setItem(SAVE_KEY, JSON.stringify(s)), 3000);
-		return () => clearInterval(id);
-	  }, [s]);
+    // 讀檔
+    try {
+      const raw = localStorage.getItem(SAVE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+
+        // 舊檔遷移：沒有 lifespan 就用「當前境界的滿壽元」
+        if (!parsed.lifespan) {
+          const idx = parsed.realmIndex ?? 0;
+          parsed.lifespan = {
+            maxDays: maxDaysOf(idx),
+            leftDays: maxDaysOf(idx),
+          };
+          // 舊的 lifeDays 不再沿用，以免像你這樣卡在 8x 年
+          delete parsed.lifeDays;
+        }
+
+        next = { ...next, ...parsed };
+      }
+    } catch {}
+
+    // 每日登入 & 壽元遞減
+    const today = new Date().toISOString().slice(0, 10);
+    const last  = next.login?.last;
+    if (last) {
+      const diffDays = Math.max(
+        0,
+        Math.floor((Date.parse(today) - Date.parse(last)) / 86400000)
+      );
+      next = decayLifespanByDays(next, diffDays);
+    }
+
+    next = {
+      ...next,
+      login: {
+        last: today,
+        streak: last ? (next.login?.streak ?? 0) + 1 : 1,
+        dayClaimed: false,
+      },
+    };
+
+    return next;
+  });
+}, []);
+
+
+
+
+
+
+	  /* 任何變動 → 立即落盤（並同步 stones/gold/spiritStone） */
+	useEffect(() => {
+	  writeSave(s);          // 寫回且同步別名
+	}, [s]);
+
+	useEffect(() => {
+	  const handler = () => writeSave(s);
+	  window.addEventListener("beforeunload", handler);
+	  return () => {
+		handler();           // SPA 切頁/卸載也存一次
+		window.removeEventListener("beforeunload", handler);
+	  };
+	}, [s]);
+
+
+	/* 關閉/跳轉頁面再保險存一次 */
+	useEffect(() => {
+	const id = setInterval(() => localStorage.setItem(SAVE_KEY, JSON.stringify(s)), 3000);
+	return () => clearInterval(id);
+	}, [s]);
+
 
 	  /* 加成 */
 	  const realm = REALMS[s.realmIndex] ?? REALMS[REALMS.length - 1];
@@ -112,12 +247,22 @@
 
 	  /* 自動產出（autoPerSec 改變時重開 interval） */
 	  useEffect(() => {
-		if (tickRef.current) clearInterval(tickRef.current);
-		tickRef.current = setInterval(() => {
-		  setS(p => ({ ...p, qi: p.qi + autoPerSec }));
-		}, 1000);
-		return () => { if (tickRef.current) clearInterval(tickRef.current); };
-	  }, [autoPerSec]);
+	  if (tickRef.current) clearInterval(tickRef.current);
+	  tickRef.current = setInterval(() => {
+		setS(p => {
+		  const nextQi = p.qi + autoPerSec;
+		  const nextLeft = Math.max(0, (p.lifespan?.leftDays ?? 0) - LIFE_DECAY_PER_SEC);
+		  return {
+			...p,
+			qi: nextQi,
+			lifespan: { ...(p.lifespan ?? {}), leftDays: nextLeft },
+			lastTick: Date.now(),
+		  };
+		});
+	  }, 1000);
+	  return () => { if (tickRef.current) clearInterval(tickRef.current); };
+	}, [autoPerSec]);
+
 
 	  /* 動作 */
 	  const cultivate = () => setS(p => ({ ...p, qi: p.qi + clickGain }));
@@ -167,7 +312,19 @@
 		const success = Math.random() < chance;
 
 		if (success) {
-		  setS(p => ({ ...p, qi: p.qi - nextRealm.costQi, daoHeart: p.daoHeart - (useDaoHeart ? 1 : 0), realmIndex: p.realmIndex + 1 }));
+		// 普通突破成功
+		setS(p => {
+		  const newIndex = p.realmIndex + 1;
+		  let np = {
+			...p,
+			qi: p.qi - nextRealm.costQi,
+			daoHeart: p.daoHeart - (useDaoHeart ? 1 : 0),	
+			realmIndex: newIndex,
+		  };
+		  np = extendLifespan(np, newIndex);
+		  return np;
+		});
+
 		  setMsg(`突破成功！晉階「${nextRealm.name}」。`);
 		} else {
 		  const lost = Math.floor(s.qi * 0.3);
@@ -229,16 +386,27 @@
 			  state={dujie}
 			  setState={setDujie}
 			  artBreakBonus={artBreakBonus}
-			  onFinish={({ success, daoUsed, failStage, costQi }) => {
-				if (success) {
-				  setS(p => ({ ...p, qi: p.qi - costQi, daoHeart: Math.max(0, p.daoHeart - daoUsed), realmIndex: p.realmIndex + 1 }));
-				  setMsg(`九重天雷盡滅！成功晉階「${REALMS[s.realmIndex + 1]?.name || ""}」，消耗道心 ${daoUsed}。`);
-				} else {
-				  const lost = Math.floor(s.qi * 0.5);
-				  setS(p => ({ ...p, qi: Math.max(0, p.qi - lost), daoHeart: Math.max(0, p.daoHeart - daoUsed) }));
-				  setMsg(`渡劫失敗（第 ${failStage} 重），損失 ${fmt(lost)} 修為，道心消耗 ${daoUsed}。`);
-				}
-			  }}
+				onFinish={({ success, daoUsed, failStage, costQi }) => {
+				  if (success) {
+					setS(p => {
+					  const newIndex = p.realmIndex + 1;
+					  let np = {
+						...p,
+						qi: p.qi - costQi,
+						daoHeart: Math.max(0, p.daoHeart - daoUsed),
+						realmIndex: newIndex,
+					  };
+					  np = extendLifespan(np, newIndex);
+					  return np;
+					});
+					setMsg(`九重天雷盡滅！成功晉階「${REALMS[s.realmIndex + 1]?.name || ""}」，消耗道心 ${daoUsed}。`);
+				  } else {
+					// 失敗維持原本處理
+					const lost = Math.floor(s.qi * 0.5);
+					setS(p => ({ ...p, qi: Math.max(0, p.qi - lost), daoHeart: Math.max(0, p.daoHeart - daoUsed) }));
+					setMsg(`渡劫失敗（第 ${failStage} 重），損失 ${fmt(lost)} 修為，道心消耗 ${daoUsed}。`);
+				  }
+				}}
 			/>
 		  )}
 
