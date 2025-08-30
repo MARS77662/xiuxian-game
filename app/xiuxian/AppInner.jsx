@@ -10,18 +10,6 @@ const SAVE_KEY = "xiuxian-save-v1";
 const BASE_AUTO_PER_SEC = 100;   // 每秒自動靈力（會再乘各種加成）
 const BASE_CLICK_GAIN   = 500;   // 每次點擊靈力
 const QI_TO_STONE       = 100;   // 多少靈力煉 1 枚靈石
-// 放在 useState 之後
-const safeSkills = useMemo(() => {
-  const k = s?.skills;
-  if (k && typeof k === 'object') {
-    return {
-      tuna:    Number(k.tuna ?? 0),
-      wuxing:  Number(k.wuxing ?? 0),
-      jiutian: Number(k.jiutian ?? 0),
-    };
-  }
-  return { tuna: 0, wuxing: 0, jiutian: 0 };
-}, [s?.skills]);
 
 /* ====== 壽元：各境界上限（年） ====== */
 const LIFE_YEARS_BY_REALM = [30, 60, 120, 240, 480, 960, 1500, 3000];
@@ -170,17 +158,15 @@ const defaultState = () => ({
   },
 });
 
-/* ===================== 主元件 ===================== */
-export default function AppInner() {
-  const [s, setS] = useState(() => defaultState());
-  computeBonuses(s) 
+/* ===================== 純函式：加成計算 ===================== */
+function computeBonuses(s) {
   const safeSkills = {
     tuna:    Number(s?.skills?.tuna    ?? 0),
     wuxing:  Number(s?.skills?.wuxing  ?? 0),
     jiutian: Number(s?.skills?.jiutian ?? 0),
   };
 
-  const realm = REALMS[s.realmIndex] ?? REALMS[REALMS.length - 1];
+  const realm = REALMS[s?.realmIndex ?? 0] ?? REALMS[REALMS.length - 1];
 
   const skillAutoBonus =
     safeSkills.tuna    * SKILLS.tuna.autoPct +
@@ -219,10 +205,36 @@ export default function AppInner() {
   };
 }
 
+/* ===================== 主元件 ===================== */
+export default function AppInner() {
+  /* 1) React 狀態先宣告 */
+  const [s, setS] = useState(() => defaultState());
+  const [msg, setMsg] = useState("");
+  const [importText, setImportText] = useState("");
+  const tickRef = useRef(null);
 
+  const [dujie, setDujie] = useState({
+    open: false, useDaoHeart: true, running: false, logs: [],
+    finished: false, nextName: "", costQi: 0,
+  });
 
+  /* 2) 再基於 s 做加成計算 */
+  const {
+    safeSkills,
+    realm,
+    skillAutoBonus,
+    artAutoBonus,
+    artClickBonus,
+    artBreakBonus,
+    talentAutoBonus,
+    talentClickBonus,
+    totalAutoMultiplier,
+    totalClickMultiplier,
+    autoPerSec,
+    clickGain,
+  } = useMemo(() => computeBonuses(s), [s]);
 
-  /* 首次掛載：安全讀檔 → 合併 → 每日登入 + 相隔天數衰減壽元 */
+  /* 3) 掛載時讀檔 + 補丁 + 每日登入處理 */
   useEffect(() => {
     const saved = loadSaveSafely();
     setS((prev) => {
@@ -247,81 +259,34 @@ export default function AppInner() {
       return next;
     });
   }, []);
-// 讀檔 + 遷移補丁（放在 autosave 之前）
-useEffect(() => {
-  const saved = loadSaveSafely();
-  if (!saved) return;
-  setS(prev => {
-    // 先合併
-    let next = { ...prev, ...saved };
 
-    // 🔒 不讓奇怪的 saved.skills 蓋掉結構
-    if (typeof saved.skills !== 'object' || saved.skills === null) {
-      // 舊版可能把 skills 存成數字或空 → 轉成物件
-      const n = Number(saved.skills) || 0;
-      next.skills = { tuna: n, wuxing: 0, jiutian: 0 };
-    } else {
-      // 正常情況也做數字化與預設值補齊
-      next.skills = {
-        tuna:    Number(saved.skills.tuna ?? prev.skills?.tuna ?? 0),
-        wuxing:  Number(saved.skills.wuxing ?? prev.skills?.wuxing ?? 0),
-        jiutian: Number(saved.skills.jiutian ?? prev.skills?.jiutian ?? 0),
-      };
-    }
-    return next;
-  });
-}, []);
+  // 讀檔 + 遷移補丁（放在 autosave 之前）
+  useEffect(() => {
+    const saved = loadSaveSafely();
+    if (!saved) return;
+    setS(prev => {
+      // 先合併
+      let next = { ...prev, ...saved };
 
+      // 🔒 不讓奇怪的 saved.skills 蓋掉結構
+      if (typeof saved.skills !== 'object' || saved.skills === null) {
+        // 舊版可能把 skills 存成數字或空 → 轉成物件
+        const n = Number(saved.skills) || 0;
+        next.skills = { tuna: n, wuxing: 0, jiutian: 0 };
+      } else {
+        // 正常情況也做數字化與預設值補齊
+        next.skills = {
+          tuna:    Number(saved.skills.tuna ?? prev.skills?.tuna ?? 0),
+          wuxing:  Number(saved.skills.wuxing ?? prev.skills?.wuxing ?? 0),
+          jiutian: Number(saved.skills.jiutian ?? prev.skills?.jiutian ?? 0),
+        };
+      }
+      return next;
+    });
+  }, []);
 
   /* 單一自動存檔 */
   useEffect(() => { writeSave(s); }, [s]);
-
-function computeBonuses(s) {
-  const safeSkills = {
-    tuna:    Number(s?.skills?.tuna    ?? 0),
-    wuxing:  Number(s?.skills?.wuxing  ?? 0),
-    jiutian: Number(s?.skills?.jiutian ?? 0),
-  };
-
-  const realm = REALMS[s.realmIndex] ?? REALMS[REALMS.length - 1];
-
-  const skillAutoBonus =
-    safeSkills.tuna    * SKILLS.tuna.autoPct +
-    safeSkills.wuxing  * SKILLS.wuxing.autoPct +
-    safeSkills.jiutian * SKILLS.jiutian.autoPct;
-
-  const artAutoBonus  = s?.artifacts?.zijinhu  ? ARTIFACTS.zijinhu.autoPct   : 0;
-  const artClickBonus = s?.artifacts?.qingxiao ? ARTIFACTS.qingxiao.clickPct : 0;
-  const artBreakBonus = s?.artifacts?.zhenpan  ? ARTIFACTS.zhenpan.brPct     : 0;
-
-  const talentAutoBonus  = (Number(s?.talent?.auto)  || 0) * 0.10;
-  const talentClickBonus = (Number(s?.talent?.click) || 0) * 0.10;
-
-  const totalAutoMultiplier  =
-    (1 + skillAutoBonus + artAutoBonus + talentAutoBonus) * (realm?.multiplier ?? 1);
-
-  const totalClickMultiplier =
-    (1 + artClickBonus + talentClickBonus) * (realm?.multiplier ?? 1);
-
-  const autoPerSec = BASE_AUTO_PER_SEC * totalAutoMultiplier;
-  const clickGain  = BASE_CLICK_GAIN   * totalClickMultiplier;
-
-  return {
-    safeSkills,
-    realm,
-    skillAutoBonus,
-    artAutoBonus,
-    artClickBonus,
-    artBreakBonus,
-    talentAutoBonus,
-    talentClickBonus,
-    totalAutoMultiplier,
-    totalClickMultiplier,
-    autoPerSec,
-    clickGain,
-  };
-}
-
 
   /* 每秒自動產出 + 壽元遞減 */
   useEffect(() => {
@@ -344,7 +309,7 @@ function computeBonuses(s) {
     return () => { if (tickRef.current) clearInterval(tickRef.current); };
   }, [autoPerSec]);
 
-  /* 動作 */
+  /* ============ 動作 ============ */
   const cultivate = () => setS((p) => {
     let next = { ...p, qi: (Number(p.qi) || 0) + clickGain };
     next = safePunish(next);
@@ -369,15 +334,15 @@ function computeBonuses(s) {
   };
 
   const buySkill = (sk) => {
-  const def = SKILLS[sk], lv = Number(safeSkills[sk] ?? 0);
-  const cost = costOfSkill(def.baseCost, def.growth, lv);
-  if ((Number(s.stones) || 0) < cost) { setMsg("靈石不足。"); return; }
-  setS((p) => ({
-    ...p,
-    stones: Math.max(0, (Number(p.stones) || 0) - cost),
-    skills: { ...p.skills, [sk]: (Number(p.skills?.[sk]) || 0) + 1 },
-  }));
-};
+    const def = SKILLS[sk], lv = Number(safeSkills[sk] ?? 0);
+    const cost = costOfSkill(def.baseCost, def.growth, lv);
+    if ((Number(s.stones) || 0) < cost) { setMsg("靈石不足。"); return; }
+    setS((p) => ({
+      ...p,
+      stones: Math.max(0, (Number(p.stones) || 0) - cost),
+      skills: { ...p.skills, [sk]: (Number(p.skills?.[sk]) || 0) + 1 },
+    }));
+  };
 
   const buyArtifact = (ak) => {
     const a = ARTIFACTS[ak];
@@ -620,6 +585,7 @@ function computeBonuses(s) {
       </footer>
     </div>
   );
+}
 
 /* ===================== 子元件 ===================== */
 function Card({ title, children }) {
