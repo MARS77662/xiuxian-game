@@ -329,7 +329,6 @@ function Creator({ onDone }){
           )}
         </div>
   );
-}
 
 /* ========= ③ 主線劇情（依門派分支，從 JSON 載入） ========= */
 async function loadStoryJSON(faction){
