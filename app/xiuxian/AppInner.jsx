@@ -31,6 +31,74 @@
 
 	const yearsToDays = toDays;  // 👈 加這行別名，讓 yearsToDays 也可用
 
+	const SAVE_KEY = "xiuxian-save-v1";
+
+	// 安全數字/布林
+	const num = (x, d = 0) => {
+	  const n = Number(x);
+	  return Number.isFinite(n) ? n : d;
+	};
+	const bool = (x) => x === true;
+
+	// 依你目前狀態結構做最小化矯正（可再擴充）
+	function sanitizeSave(sv) {
+	  const realmIndex = Math.max(0, parseInt(sv?.realmIndex ?? 0) || 0);
+
+	  return {
+		qi:        num(sv?.qi, 0),
+		stones:    num(sv?.stones, 0),
+		daoHeart:  num(sv?.daoHeart, 0),
+		realmIndex,
+
+		skills: {
+		  tuna:   num(sv?.skills?.tuna, 0),
+		  wuxing: num(sv?.skills?.wuxing, 0),
+		  jiutian:num(sv?.skills?.jiutian, 0),
+		},
+
+		artifacts: {
+		  qingxiao: bool(sv?.artifacts?.qingxiao),
+		  zijinhu:  bool(sv?.artifacts?.zijinhu),
+		  zhenpan:  bool(sv?.artifacts?.zhenpan),
+		},
+
+		// 登入資訊（缺就補）
+		login: {
+		  last: sv?.login?.last || "",
+		  streak: num(sv?.login?.streak, 0),
+		  dayClaimed: bool(sv?.login?.dayClaimed),
+		},
+
+		// 其它欄位保留原值（null/undefined 會在展開時被忽略）
+		...sv,
+	  };
+	}
+
+	function loadSaveSafely() {
+	  if (typeof window === "undefined") return null; // SSR 避免觸發
+	  try {
+		const raw = localStorage.getItem(SAVE_KEY);
+		if (!raw) return null;
+
+		// 有些舊版本會真的存入 "null"（字串），要當作壞檔處理
+		if (raw === "null") {
+		  localStorage.removeItem(SAVE_KEY);
+		  return null;
+		}
+
+		const parsed = JSON.parse(raw);
+		if (!parsed || typeof parsed !== "object") {
+		  // 不是有效 JSON 物件，清掉
+		  localStorage.removeItem(SAVE_KEY);
+		  return null;
+		}
+		return sanitizeSave(parsed);
+	  } catch {
+		// 解析失敗也清掉
+		try { localStorage.removeItem(SAVE_KEY); } catch {}
+		return null;
+	  }
+	}
 
 	// 依境界計算 maxDays
 	const maxDaysOf = (realmIndex) =>
