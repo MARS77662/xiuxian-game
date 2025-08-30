@@ -173,6 +173,39 @@ const defaultState = () => ({
 /* ===================== 主元件 ===================== */
 export default function AppInner() {
   const [s, setS] = useState(() => defaultState());
+  // 安全 skills 代理（避免 s.skills 炸掉）
+const safeSkills = (() => {
+  const k = s?.skills;
+  if (k && typeof k === 'object') {
+    return {
+      tuna:    Number(k.tuna ?? 0),
+      wuxing:  Number(k.wuxing ?? 0),
+      jiutian: Number(k.jiutian ?? 0),
+    };
+  }
+  return { tuna: 0, wuxing: 0, jiutian: 0 };
+})();
+
+// 加成計算
+const realm = REALMS[s.realmIndex] ?? REALMS[REALMS.length - 1];
+const tunaLv    = safeSkills.tuna;
+const wuxingLv  = safeSkills.wuxing;
+const jiutianLv = safeSkills.jiutian;
+
+const skillAutoBonus =
+  tunaLv    * SKILLS.tuna.autoPct +
+  wuxingLv  * SKILLS.wuxing.autoPct +
+  jiutianLv * SKILLS.jiutian.autoPct;
+
+const artAutoBonus   = s.artifacts.zijinhu ? ARTIFACTS.zijinhu.autoPct : 0;
+const artClickBonus  = s.artifacts.qingxiao ? ARTIFACTS.qingxiao.clickPct : 0;
+const artBreakBonus  = s.artifacts.zhenpan ? ARTIFACTS.zhenpan.brPct : 0;
+const talentAutoBonus  = s.talent.auto  * 0.10;
+const talentClickBonus = s.talent.click * 0.10;
+
+const totalAutoMultiplier  = (1 + skillAutoBonus + artAutoBonus + talentAutoBonus) * realm.multiplier;
+const totalClickMultiplier = (1 + artClickBonus  + talentClickBonus) * realm.multiplier;
+
   const [msg, setMsg] = useState("");
   const [importText, setImportText] = useState("");
   const tickRef = useRef(null);
@@ -308,15 +341,15 @@ const skillAutoBonus =
   };
 
   const buySkill = (sk) => {
-    const def = SKILLS[sk], lv = Number(safeSkills[sk] ?? 0);
-    const cost = costOfSkill(def.baseCost, def.growth, lv);
-    if ((Number(s.stones) || 0) < cost) { setMsg("靈石不足。"); return; }
-    setS((p) => ({
-      ...p,
-      stones: Math.max(0, (Number(p.stones) || 0) - cost),
-      skills: { ...p.skills, [sk]: (Number(p.skills[sk]) || 0) + 1 },
-    }));
-  };
+  const def = SKILLS[sk], lv = Number(safeSkills[sk] ?? 0);
+  const cost = costOfSkill(def.baseCost, def.growth, lv);
+  if ((Number(s.stones) || 0) < cost) { setMsg("靈石不足。"); return; }
+  setS((p) => ({
+    ...p,
+    stones: Math.max(0, (Number(p.stones) || 0) - cost),
+    skills: { ...p.skills, [sk]: (Number(p.skills?.[sk]) || 0) + 1 },
+  }));
+};
 
   const buyArtifact = (ak) => {
     const a = ARTIFACTS[ak];
