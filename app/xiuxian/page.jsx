@@ -15,6 +15,41 @@ const BG_BY_FACTION = {
   "邪修": "/bg/sect-evil.jpg",
   "散修": "/bg/sect-rogue.jpg",
 };
+// ①-1 依「門派 key」指定門派場景圖（有就用它）
+const SECT_SCENE_BG = {
+  // 正派
+  tianjian: "/bg/scene-tianjian.jpg",
+  danyang:  "/bg/scene-danyang.jpg",
+  fulu:     "/bg/scene-fulu.jpg",
+  // 邪修
+  xuesha:   "/bg/scene-xuesha.jpg",
+  moxin:    "/bg/scene-moxin.jpg",
+  youming:  "/bg/scene-youming.jpg",
+  // 散修
+  shanxiu:  "/bg/scene-shanxiu.jpg",
+  youxia:   "/bg/scene-youxia.jpg",
+  shusheng: "/bg/scene-shusheng.jpg",
+};
+
+// ①-2 若沒有單獨門派圖，就用派系通用場景（再退回 BG_BY_FACTION/預設）
+const SECT_SCENE_FALLBACK = {
+  "正派": "/bg/scene-righteous.jpg",
+  "邪修": "/bg/scene-evil.jpg",
+  "散修": "/bg/scene-rogue.jpg",
+};
+{/* 門派場景預覽 */}
+<div className="relative h-40 rounded-2xl overflow-hidden border border-white/10 mb-3">
+  <img
+    src={ SECT_SCENE_BG[sectKey] || SECT_SCENE_FALLBACK[type] || BG_BY_FACTION[type] || BG_DEFAULT }
+    alt="門派場景預覽"
+    className="absolute inset-0 w-full h-full object-cover"
+    onError={(e)=>{ e.currentTarget.onerror=null; e.currentTarget.src = SECT_SCENE_FALLBACK[type] || BG_BY_FACTION[type] || BG_DEFAULT; }}
+  />
+  <div className="absolute inset-0 bg-black/35" />
+  <div className="relative z-10 p-3 text-sm text-slate-200">
+    起始場景：{sect?.startScene || "—"}
+  </div>
+</div>
 
 
 // 隨機名
@@ -161,6 +196,8 @@ function Landing({ onEnter }){
 		};
 		try { localStorage.setItem("xiuxian-profile", JSON.stringify(payload)); } catch {}
 		onDone(payload);
+		// ✨ 新增：門派專屬場景圖（含 fallback）
+  sectSceneBg: SECT_SCENE_BG[sect?.key] || SECT_SCENE_FALLBACK[type] || BG_BY_FACTION[type] || BG_DEFAULT,
 	  };
 
 	  return (
