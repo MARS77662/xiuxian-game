@@ -186,34 +186,7 @@ const safeSkills = (() => {
   return { tuna: 0, wuxing: 0, jiutian: 0 };
 })();
 
-// 加成計算
-const realm = REALMS[s.realmIndex] ?? REALMS[REALMS.length - 1];
-const tunaLv    = safeSkills.tuna;
-const wuxingLv  = safeSkills.wuxing;
-const jiutianLv = safeSkills.jiutian;
 
-const skillAutoBonus =
-  tunaLv    * SKILLS.tuna.autoPct +
-  wuxingLv  * SKILLS.wuxing.autoPct +
-  jiutianLv * SKILLS.jiutian.autoPct;
-
-const artAutoBonus   = s.artifacts.zijinhu ? ARTIFACTS.zijinhu.autoPct : 0;
-const artClickBonus  = s.artifacts.qingxiao ? ARTIFACTS.qingxiao.clickPct : 0;
-const artBreakBonus  = s.artifacts.zhenpan ? ARTIFACTS.zhenpan.brPct : 0;
-const talentAutoBonus  = s.talent.auto  * 0.10;
-const talentClickBonus = s.talent.click * 0.10;
-
-const totalAutoMultiplier  = (1 + skillAutoBonus + artAutoBonus + talentAutoBonus) * realm.multiplier;
-const totalClickMultiplier = (1 + artClickBonus  + talentClickBonus) * realm.multiplier;
-
-  const [msg, setMsg] = useState("");
-  const [importText, setImportText] = useState("");
-  const tickRef = useRef(null);
-
-  const [dujie, setDujie] = useState({
-    open: false, useDaoHeart: true, running: false, logs: [],
-    finished: false, nextName: "", costQi: 0,
-  });
 
   /* 首次掛載：安全讀檔 → 合併 → 每日登入 + 相隔天數衰減壽元 */
   useEffect(() => {
@@ -269,36 +242,51 @@ useEffect(() => {
   /* 單一自動存檔 */
   useEffect(() => { writeSave(s); }, [s]);
 
-// 統一用 safeSkills 保護，避免 undefined
-/* 加成（唯一一份） */
-const safeSkills = {
-  tuna:    Number(s?.skills?.tuna ?? 0),
-  wuxing:  Number(s?.skills?.wuxing ?? 0),
-  jiutian: Number(s?.skills?.jiutian ?? 0),
-};
+function computeBonuses(s) {
+  const safeSkills = {
+    tuna:    Number(s?.skills?.tuna    ?? 0),
+    wuxing:  Number(s?.skills?.wuxing  ?? 0),
+    jiutian: Number(s?.skills?.jiutian ?? 0),
+  };
 
-const realm = REALMS[s.realmIndex] ?? REALMS[REALMS.length - 1];
+  const realm = REALMS[s.realmIndex] ?? REALMS[REALMS.length - 1];
 
-const skillAutoBonus =
-  safeSkills.tuna   * SKILLS.tuna.autoPct +
-  safeSkills.wuxing * SKILLS.wuxing.autoPct +
-  safeSkills.jiutian* SKILLS.jiutian.autoPct;
+  const skillAutoBonus =
+    safeSkills.tuna    * SKILLS.tuna.autoPct +
+    safeSkills.wuxing  * SKILLS.wuxing.autoPct +
+    safeSkills.jiutian * SKILLS.jiutian.autoPct;
 
-const artAutoBonus  = s?.artifacts?.zijinhu  ? ARTIFACTS.zijinhu.autoPct   : 0;
-const artClickBonus = s?.artifacts?.qingxiao ? ARTIFACTS.qingxiao.clickPct : 0;
-const artBreakBonus = s?.artifacts?.zhenpan  ? ARTIFACTS.zhenpan.brPct     : 0;
+  const artAutoBonus  = s?.artifacts?.zijinhu  ? ARTIFACTS.zijinhu.autoPct   : 0;
+  const artClickBonus = s?.artifacts?.qingxiao ? ARTIFACTS.qingxiao.clickPct : 0;
+  const artBreakBonus = s?.artifacts?.zhenpan  ? ARTIFACTS.zhenpan.brPct     : 0;
 
-const talentAutoBonus  = (Number(s?.talent?.auto)  || 0) * 0.10;
-const talentClickBonus = (Number(s?.talent?.click) || 0) * 0.10;
+  const talentAutoBonus  = (Number(s?.talent?.auto)  || 0) * 0.10;
+  const talentClickBonus = (Number(s?.talent?.click) || 0) * 0.10;
 
-const totalAutoMultiplier  =
-  (1 + skillAutoBonus + artAutoBonus + talentAutoBonus) * (realm?.multiplier ?? 1);
+  const totalAutoMultiplier  =
+    (1 + skillAutoBonus + artAutoBonus + talentAutoBonus) * (realm?.multiplier ?? 1);
 
-const totalClickMultiplier =
-  (1 + artClickBonus + talentClickBonus) * (realm?.multiplier ?? 1);
+  const totalClickMultiplier =
+    (1 + artClickBonus + talentClickBonus) * (realm?.multiplier ?? 1);
 
-const autoPerSec = BASE_AUTO_PER_SEC * totalAutoMultiplier;
-const clickGain  = BASE_CLICK_GAIN   * totalClickMultiplier;
+  const autoPerSec = BASE_AUTO_PER_SEC * totalAutoMultiplier;
+  const clickGain  = BASE_CLICK_GAIN   * totalClickMultiplier;
+
+  return {
+    safeSkills,
+    realm,
+    skillAutoBonus,
+    artAutoBonus,
+    artClickBonus,
+    artBreakBonus,
+    talentAutoBonus,
+    talentClickBonus,
+    totalAutoMultiplier,
+    totalClickMultiplier,
+    autoPerSec,
+    clickGain,
+  };
+}
 
 
   /* 每秒自動產出 + 壽元遞減 */
