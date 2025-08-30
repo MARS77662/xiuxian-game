@@ -1,0 +1,22 @@
+{
+  "factions": {
+    "正派": [
+      { "key": "tianjian", "name": "天劍宗", "desc": "主修劍道，一劍破萬法。", "startScene": "仙山劍崖", "bonuses": { "體質": 2 }, "tags": ["劍修","爆發"] },
+      { "key": "danyang",  "name": "丹陽宗", "desc": "精通煉丹，醫理與輔助見長。", "startScene": "丹房藥谷", "bonuses": { "智力": 2 }, "tags": ["煉丹","續航"] },
+      { "key": "fulu",     "name": "符籙宗", "desc": "符陣相生，攻守兼備。", "startScene": "萬陣峰", "bonuses": { "智力": 1, "才貌": 1 }, "tags": ["符陣","控場"] }
+    ],
+    "邪修": [
+      { "key": "xuesha", "name": "血煞宗", "desc": "以精血換修為，兇名遠播。", "startScene": "血池煞域", "bonuses": { "體質": 2 }, "tags": ["血修","高風險"] },
+      { "key": "moxin",  "name": "魔心閣", "desc": "以心魔為刃，負念即力量。", "startScene": "魔心塔", "bonuses": { "智力": 2 }, "tags": ["心魔","暴走突破"] },
+      { "key": "youming","name": "幽冥宗", "desc": "通鬼神、役亡魂。", "startScene": "幽都陰市", "bonuses": { "才貌": 2 }, "tags": ["陰脈","靈僕"] }
+    ],
+    "散修": [
+      { "key": "shanxiu","name": "山野苦修者", "desc": "獨處山林，自行悟道。", "startScene": "幽嶼山林", "bonuses": { "體質": 1, "智力": 1 }, "tags": ["清苦","高奇遇"] },
+      { "key": "youxia", "name": "市井游俠",   "desc": "行走凡間，廣結人脈。", "startScene": "人間市集", "bonuses": { "才貌": 2 }, "tags": ["人脈","情報"] },
+      { "key": "shusheng","name": "隱世書生",  "desc": "抱卷潛修，家傳典籍。", "startScene": "書舍靜室", "bonuses": { "智力": 1, "家境": 1 }, "tags": ["典籍","穩健"] }
+    ]
+  },
+  "attributes": ["體質","智力","才貌","家境"],
+  "startPoints": 16,
+  "rules": { "desc": "初始點數可自由分配；門派加成在分配後套用。", "applyBonusAfterAllocate": true }
+}
