@@ -261,27 +261,20 @@ export default function AppInner() {
   }, []);
 
   // 讀檔 + 遷移補丁（放在 autosave 之前）
-  useEffect(() => {
+useEffect(() => {
   const saved = loadSaveSafely();
   if (!saved) return;
   setS(prev => {
-
-   // 先合併，再把容易缺的子物件補齊
-   let next = {
-     ...prev,
-     ...saved,
-     skills:    { ...prev.skills,    ...(saved.skills    || {}) },
-     artifacts: { ...prev.artifacts, ...(saved.artifacts || {}) },
-     meta:      { ...prev.meta,      ...(saved.meta      || {}) },
-     login:     { ...prev.login,     ...(saved.login     || {}) },
-     talent:    { ...prev.talent,    ...(saved.talent    || {}) },
-   };
+    // 先合併
+    let next = { ...prev, ...saved };
 
     // 🔒 不讓奇怪的 saved.skills 蓋掉結構
     if (typeof saved.skills !== 'object' || saved.skills === null) {
+      // 舊版可能把 skills 存成數字或空 → 轉成物件
       const n = Number(saved.skills) || 0;
       next.skills = { tuna: n, wuxing: 0, jiutian: 0 };
     } else {
+      // 正常情況也做數字化與預設值補齊
       next.skills = {
         tuna:    Number(saved.skills.tuna ?? prev.skills?.tuna ?? 0),
         wuxing:  Number(saved.skills.wuxing ?? prev.skills?.wuxing ?? 0),
@@ -289,9 +282,9 @@ export default function AppInner() {
       };
     }
 
-+   // 保底：若合併後仍缺，給預設
-+   if (!next.meta)  next.meta  = { starterGift: false };
-+   if (!next.login) next.login = { last: "", streak: 0, dayClaimed: false };
+    // ✅ 保底：若合併後仍缺，補上預設
+    if (!next.meta)  next.meta  = { starterGift: false };
+    if (!next.login) next.login = { last: "", streak: 0, dayClaimed: false };
 
     return next;
   });
@@ -358,16 +351,17 @@ export default function AppInner() {
   };
 
   const buyArtifact = (ak) => {
-    const a = ARTIFACTS[ak];
-    if (s?.artifacts?.[ak]) { setMsg("已購買過此法寶。"); return; }
-    if (s.realmIndex < a.unlockRealmIndex) { setMsg("境界未到，無法驅使此法寶。"); return; }
-    if ((Number(s.stones) || 0) < a.cost) { setMsg("靈石不足。"); return; }
-    setS((p) => ({
-      ...p,
-      stones: Math.max(0, (Number(p.stones) || 0) - a.cost),
-      artifacts: { ...p.artifacts, [ak]: true },
-    }));
-  };
+  const a = ARTIFACTS[ak];
+  if (s?.artifacts?.[ak]) { setMsg("已購買過此法寶。"); return; }  // ← 這行改了
+  if (s.realmIndex < a.unlockRealmIndex) { setMsg("境界未到，無法驅使此法寶。"); return; }
+  if ((Number(s.stones) || 0) < a.cost) { setMsg("靈石不足。"); return; }
+  setS((p) => ({
+    ...p,
+    stones: Math.max(0, (Number(p.stones) || 0) - a.cost),
+    artifacts: { ...p.artifacts, [ak]: true },
+  }));
+};
+
 
   const comprehendDao = () => {
     const ok = Math.random() < 0.5;
@@ -624,54 +618,66 @@ function Stat({ label, value }) {
   );
 }
 
-function RewardsBar({ s, setS, setMsg }) {
--  const claimStarter = () => {
--    if (s.meta.starterGift) return;
--    setS((p) => ({ ...p, stones: (Number(p.stones)||0) + 500, meta: { ...p.meta, starterGift: true } }));
-+  const claimStarter = () => {
-+    if (s?.meta?.starterGift) return;
-+    setS((p) => ({
-+      ...p,
-+      stones: (Number(p.stones)||0) + 500,
-+      meta: { ...(p.meta || {}), starterGift: true },
-+    }));
-     setMsg("新手禮包已領取：靈石 +500！");
-   };
+function function RewardsBar({ s, setS, setMsg }) {
+  const starterClaimed = !!s?.meta?.starterGift;
+  const dayClaimed     = s?.login?.dayClaimed === true;
+  const streak         = Number(s?.login?.streak) || 0;
 
--  const claimDaily = () => {
--    if (s.login.dayClaimed === true) return;
--    const gain = 30 + Math.min(6, Number(s.login.streak)||0) * 10;
--    setS((p) => ({ ...p, stones: (Number(p.stones)||0) + gain, login: { ...p.login, dayClaimed: true } }));
-+  const claimDaily = () => {
-+    if (s?.login?.dayClaimed === true) return;
-+    const gain = 30 + Math.min(6, Number(s?.login?.streak)||0) * 10;
-+    setS((p) => ({
-+      ...p,
-+      stones: (Number(p.stones)||0) + gain,
-+      login: { ...(p.login || {}), dayClaimed: true },
-+    }));
-     setMsg(`每日修煉有成：靈石 +${gain}`);
-   };
+  const claimStarter = () => {
+    if (starterClaimed) return;
+    setS((p) => ({
+      ...p,
+      stones: (Number(p.stones) || 0) + 500,
+      meta: { ...(p.meta || {}), starterGift: true },
+    }));
+    setMsg("新手禮包已領取：靈石 +500！");
+  };
 
-   return (
-     <Card title="新手 / 每日獎勵">
-       ...
--      <button onClick={claimStarter} disabled={s.meta.starterGift}
-+      <button onClick={claimStarter} disabled={!!s?.meta?.starterGift}
-               className={`px-3 py-1.5 rounded-lg ${s?.meta?.starterGift ? 'bg-slate-700 cursor-not-allowed' : 'bg-amber-600 hover:bg-amber-500'}`}>
--        {s.meta.starterGift ? '已領取' : '領取'}
-+        {s?.meta?.starterGift ? '已領取' : '領取'}
-       </button>
-       ...
--      <div className="text-xs opacity-80">連續 {s.login.streak} 天</div>
-+      <div className="text-xs opacity-80">連續 {Number(s?.login?.streak||0)} 天</div>
-       ...
--      <button onClick={claimDaily} disabled={s.login.dayClaimed === true}
-+      <button onClick={claimDaily} disabled={s?.login?.dayClaimed === true}
-               className={`px-3 py-1.5 rounded-lg ${s?.login?.dayClaimed ? 'bg-slate-700 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-500'}`}>
--        {s.login.dayClaimed ? '已領取' : '領取'}
-+        {s?.login?.dayClaimed ? '已領取' : '領取'}
-       </button>
+  const claimDaily = () => {
+    if (dayClaimed) return;
+    const gain = 30 + Math.min(6, streak) * 10;
+    setS((p) => ({
+      ...p,
+      stones: (Number(p.stones) || 0) + gain,
+      login: { ...(p.login || {}), dayClaimed: true },
+    }));
+    setMsg(`每日修煉有成：靈石 +${gain}`);
+  };
+
+  return (
+    <Card title="新手 / 每日獎勵">
+      <div className="grid md:grid-cols-2 gap-3">
+        <div className="p-3 rounded-xl bg-amber-900/30 border border-amber-700/30 text-amber-100 text-sm flex items-center justify-between">
+          <div>
+            <div className="font-medium">新手禮包</div>
+            <div className="text-xs opacity-80">首次入門贈禮：靈石 ×500</div>
+          </div>
+          <button
+            onClick={claimStarter}
+            disabled={starterClaimed}
+            className={`px-3 py-1.5 rounded-lg ${starterClaimed ? 'bg-slate-700 cursor-not-allowed' : 'bg-amber-600 hover:bg-amber-500'}`}
+          >
+            {starterClaimed ? '已領取' : '領取'}
+          </button>
+        </div>
+
+        <div className="p-3 rounded-xl bg-emerald-900/30 border border-emerald-700/30 text-emerald-100 text-sm flex items-center justify-between">
+          <div>
+            <div className="font-medium">每日修煉獎</div>
+            <div className="text-xs opacity-80">連續 {streak} 天</div>
+          </div>
+          <button
+            onClick={claimDaily}
+            disabled={dayClaimed}
+            className={`px-3 py-1.5 rounded-lg ${dayClaimed ? 'bg-slate-700 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-500'}`}
+          >
+            {dayClaimed ? '已領取' : '領取'}
+          </button>
+        </div>
+      </div>
+    </Card>
+  );
+}
 
 
 function Leaderboard({ s }) {
