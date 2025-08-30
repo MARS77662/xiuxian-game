@@ -1,3 +1,4 @@
+	// app/xiuxian/AppInner.jsx
 	"use client";
 
 	import React, { useEffect, useMemo, useRef, useState } from "react";
@@ -42,13 +43,8 @@
 	  lastTick: 0,
 	});
 
-	/* ============================ 主元件 ============================ */
-	export default function ClientPage() {
-	  // 避免 SSR/CSR 不一致
-	  const [mounted, setMounted] = useState(false);
-	  useEffect(() => setMounted(true), []);
-	  if (!mounted) return null;
-
+	/* ============================ 主元件（無 early return） ============================ */
+	export default function AppInner() {
 	  const [s, setS] = useState(defaultState);
 	  const [msg, setMsg] = useState("");
 	  const [importText, setImportText] = useState("");
@@ -59,91 +55,83 @@
 		finished: false, nextName: "", costQi: 0,
 	  });
 
-	  // 讀檔 + 每日登入
+	  /* 讀檔 + 每日登入 */
 	  useEffect(() => {
 		try {
 		  const raw = localStorage.getItem(SAVE_KEY);
-		  if (raw) setS((prev) => ({ ...prev, ...JSON.parse(raw) }));
+		  if (raw) setS(prev => ({ ...prev, ...JSON.parse(raw) }));
 		} catch {}
-		setS((p) => {
-		  const today = new Date().toISOString().slice(0, 10);
-		  if (p.login.last !== today) return { ...p, login: { last: today, streak: (p.login.last ? p.login.streak + 1 : 1), dayClaimed: false } };
+		setS(p => {
+		  const today = new Date().toISOString().slice(0,10);
+		  if (p.login.last !== today)
+			return { ...p, login: { last: today, streak: (p.login.last ? p.login.streak + 1 : 1), dayClaimed: false } };
 		  return p;
 		});
 	  }, []);
 
-	  // 自動存檔
+	  /* 自動存檔 */
 	  useEffect(() => {
 		const id = setInterval(() => localStorage.setItem(SAVE_KEY, JSON.stringify(s)), 3000);
 		return () => clearInterval(id);
 	  }, [s]);
 
-	  // 加成
+	  /* 加成 */
 	  const realm = REALMS[s.realmIndex] ?? REALMS[REALMS.length - 1];
 	  const skillAutoBonus =
 		s.skills.tuna * SKILLS.tuna.autoPct +
 		s.skills.wuxing * SKILLS.wuxing.autoPct +
 		s.skills.jiutian * SKILLS.jiutian.autoPct;
-	  const artAutoBonus = s.artifacts.zijinhu ? ARTIFACTS.zijinhu.autoPct : 0;
-	  const artClickBonus = s.artifacts.qingxiao ? ARTIFACTS.qingxiao.clickPct : 0;
-	  const artBreakBonus = s.artifacts.zhenpan ? ARTIFACTS.zhenpan.brPct : 0;
-	  const talentAutoBonus = s.talent.auto * 0.10;
+	  const artAutoBonus   = s.artifacts.zijinhu ? ARTIFACTS.zijinhu.autoPct : 0;
+	  const artClickBonus  = s.artifacts.qingxiao ? ARTIFACTS.qingxiao.clickPct : 0;
+	  const artBreakBonus  = s.artifacts.zhenpan ? ARTIFACTS.zhenpan.brPct : 0;
+	  const talentAutoBonus  = s.talent.auto  * 0.10;
 	  const talentClickBonus = s.talent.click * 0.10;
 
-	  const totalAutoMultiplier = (1 + skillAutoBonus + artAutoBonus + talentAutoBonus) * realm.multiplier;
-	  const totalClickMultiplier = (1 + artClickBonus + talentClickBonus) * realm.multiplier;
+	  const totalAutoMultiplier  = (1 + skillAutoBonus + artAutoBonus + talentAutoBonus) * realm.multiplier;
+	  const totalClickMultiplier = (1 + artClickBonus  + talentClickBonus) * realm.multiplier;
 
 	  const autoPerSec = BASE_AUTO_PER_SEC * totalAutoMultiplier;
-	  const clickGain = BASE_CLICK_GAIN * totalClickMultiplier;
+	  const clickGain  = BASE_CLICK_GAIN * totalClickMultiplier;
 
-	  // 自動產出（autoPerSec 改變時重開 interval）
-	useEffect(() => {
-	  if (tickRef.current) {
-		clearInterval(tickRef.current);
-	  }
+	  /* 自動產出（autoPerSec 改變時重開 interval） */
+	  useEffect(() => {
+		if (tickRef.current) clearInterval(tickRef.current);
+		tickRef.current = setInterval(() => {
+		  setS(p => ({ ...p, qi: p.qi + autoPerSec }));
+		}, 1000);
+		return () => { if (tickRef.current) clearInterval(tickRef.current); };
+	  }, [autoPerSec]);
 
-	  tickRef.current = setInterval(() => {
-		setS(p => ({ ...p, qi: p.qi + autoPerSec }));
-	  }, 1000);
-
-	  return () => {
-		if (tickRef.current) {
-		  clearInterval(tickRef.current);
-		}
-	  };
-	}, [autoPerSec]);
-
-
-	  // 動作
-	  const cultivate = () => setS((p) => ({ ...p, qi: p.qi + clickGain }));
+	  /* 動作 */
+	  const cultivate = () => setS(p => ({ ...p, qi: p.qi + clickGain }));
 	  const refineStones = () => {
 		if (s.qi < QI_TO_STONE) { setMsg("靈力不足，至少需要100靈力才能煉化為 1 枚靈石。"); return; }
 		const stonesGain = Math.floor(s.qi / QI_TO_STONE);
 		const qiCost = stonesGain * QI_TO_STONE;
-		setS((p) => ({ ...p, qi: p.qi - qiCost, stones: p.stones + stonesGain }));
+		setS(p => ({ ...p, qi: p.qi - qiCost, stones: p.stones + stonesGain }));
 		setMsg(`煉化完成，獲得 ${stonesGain} 枚靈石。`);
 	  };
 	  const buySkill = (sk) => {
 		const def = SKILLS[sk], lv = s.skills[sk];
 		const cost = costOfSkill(def.baseCost, def.growth, lv);
 		if (s.stones < cost) { setMsg("靈石不足。"); return; }
-		setS((p) => ({ ...p, stones: p.stones - cost, skills: { ...p.skills, [sk]: p.skills[sk] + 1 } }));
+		setS(p => ({ ...p, stones: p.stones - cost, skills: { ...p.skills, [sk]: p.skills[sk] + 1 } }));
 	  };
 	  const buyArtifact = (ak) => {
 		const a = ARTIFACTS[ak];
 		if (s.artifacts[ak]) { setMsg("已購買過此法寶。"); return; }
 		if (s.realmIndex < a.unlockRealmIndex) { setMsg("境界未到，無法驅使此法寶。"); return; }
 		if (s.stones < a.cost) { setMsg("靈石不足。"); return; }
-		setS((p) => ({ ...p, stones: p.stones - a.cost, artifacts: { ...p.artifacts, [ak]: true } }));
+		setS(p => ({ ...p, stones: p.stones - a.cost, artifacts: { ...p.artifacts, [ak]: true } }));
 	  };
 	  const comprehendDao = () => {
 		const ok = Math.random() < 0.5;
-		setS((p) => ({ ...p, daoHeart: p.daoHeart + (ok ? 1 : 0) }));
+		setS(p => ({ ...p, daoHeart: p.daoHeart + (ok ? 1 : 0) }));
 		setMsg(ok ? "頓悟片刻，道心+1。" : "心浮氣躁，未得所悟。");
 	  };
 
-	  const nextRealm = REALMS[s.realmIndex + 1];
-	  const canAscend = s.realmIndex >= REALMS.length - 1 && s.qi >= 100_000_000;
+	  const nextRealm  = REALMS[s.realmIndex + 1];
+	  const canAscend  = s.realmIndex >= REALMS.length - 1 && s.qi >= 100_000_000;
 
 	  const tryBreakthrough = (useDaoHeart = false) => {
 		if (!nextRealm) { setMsg("已至圓滿，去飛升吧！"); return; }
@@ -152,28 +140,28 @@
 		const isIntoDujie = nextRealm.key === "dujie";
 		const isDujieNow  = REALMS[s.realmIndex]?.key === "dujie";
 		if (isIntoDujie || isDujieNow) {
-		  setDujie({ open: true, useDaoHeart: true, running: false, logs: [], finished: false, nextName: nextRealm.name, costQi: nextRealm.costQi });
+		  setDujie({ open:true, useDaoHeart:true, running:false, logs:[], finished:false, nextName:nextRealm.name, costQi:nextRealm.costQi });
 		  return;
 		}
 
 		const baseChance = nextRealm.baseChance ?? 0.5;
-		const bonus = (useDaoHeart ? 0.10 : 0) + artBreakBonus;
+		const bonus  = (useDaoHeart ? 0.10 : 0) + artBreakBonus;
 		const chance = Math.min(0.98, baseChance + bonus);
 		const success = Math.random() < chance;
 
 		if (success) {
-		  setS((p) => ({ ...p, qi: p.qi - nextRealm.costQi, daoHeart: p.daoHeart - (useDaoHeart ? 1 : 0), realmIndex: p.realmIndex + 1 }));
+		  setS(p => ({ ...p, qi: p.qi - nextRealm.costQi, daoHeart: p.daoHeart - (useDaoHeart ? 1 : 0), realmIndex: p.realmIndex + 1 }));
 		  setMsg(`突破成功！晉階「${nextRealm.name}」。`);
 		} else {
 		  const lost = Math.floor(s.qi * 0.3);
-		  setS((p) => ({ ...p, qi: Math.max(0, p.qi - lost), daoHeart: p.daoHeart - (useDaoHeart ? 1 : 0) }));
+		  setS(p => ({ ...p, qi: Math.max(0, p.qi - lost), daoHeart: p.daoHeart - (useDaoHeart ? 1 : 0) }));
 		  setMsg(`走火入魔！損失 ${fmt(lost)} 修為。`);
 		}
 	  };
 
 	  const ascend = () => {
 		if (!canAscend) { setMsg("尚未圓滿或修為不足，無法飛升。"); return; }
-		setS((p) => ({ ...defaultState(), ascensions: p.ascensions + 1, talent: { ...p.talent }, artifacts: { ...p.artifacts } }));
+		setS(p => ({ ...defaultState(), ascensions: p.ascensions + 1, talent: { ...p.talent }, artifacts: { ...p.artifacts } }));
 		setMsg("雷劫已過，飛升成功！獲得 1 點天命可分配（下版可加）。");
 	  };
 
@@ -191,19 +179,18 @@
 	  const importSave = () => {
 		try {
 		  const parsed = JSON.parse(decodeURIComponent(escape(atob(importText))));
-		  setS((p) => ({ ...p, ...parsed }));
+		  setS(p => ({ ...p, ...parsed }));
 		  setMsg("存檔已匯入。");
 		  setImportText("");
 		} catch { setMsg("匯入失敗，格式不正確。"); }
 	  };
 
-	  // 點擊的視覺反饋
 	  const [clickedFx, setClickedFx] = useState(false);
 	  const clickTrain = () => { setClickedFx(true); cultivate(); setTimeout(() => setClickedFx(false), 120); };
 
+	  /* ============================ UI ============================ */
 	  return (
 		<div className="min-h-screen bg-gradient-to-b from-slate-900 via-gray-900 to-black text-slate-100 p-4 md:p-8">
-		  {/* Header */}
 		  <header className="flex flex-col md:flex-row md:items-end gap-4 md:gap-8 max-w-6xl mx-auto">
 			<div>
 			  <h1 className="text-3xl md:text-4xl font-bold tracking-wide">修仙論道 · MVP</h1>
@@ -218,10 +205,8 @@
 			</div>
 		  </header>
 
-		  {/* 背景 + 動畫 */}
 		  <MeditationHeroImg realmKey={REALMS[s.realmIndex]?.key} />
 
-		  {/* 渡劫視窗 */}
 		  {dujie.open && (
 			<DujieModal
 			  state={dujie}
@@ -229,11 +214,11 @@
 			  artBreakBonus={artBreakBonus}
 			  onFinish={({ success, daoUsed, failStage, costQi }) => {
 				if (success) {
-				  setS((p) => ({ ...p, qi: p.qi - costQi, daoHeart: Math.max(0, p.daoHeart - daoUsed), realmIndex: p.realmIndex + 1 }));
+				  setS(p => ({ ...p, qi: p.qi - costQi, daoHeart: Math.max(0, p.daoHeart - daoUsed), realmIndex: p.realmIndex + 1 }));
 				  setMsg(`九重天雷盡滅！成功晉階「${REALMS[s.realmIndex + 1]?.name || ""}」，消耗道心 ${daoUsed}。`);
 				} else {
 				  const lost = Math.floor(s.qi * 0.5);
-				  setS((p) => ({ ...p, qi: Math.max(0, p.qi - lost), daoHeart: Math.max(0, p.daoHeart - daoUsed) }));
+				  setS(p => ({ ...p, qi: Math.max(0, p.qi - lost), daoHeart: Math.max(0, p.daoHeart - daoUsed) }));
 				  setMsg(`渡劫失敗（第 ${failStage} 重），損失 ${fmt(lost)} 修為，道心消耗 ${daoUsed}。`);
 				}
 			  }}
@@ -242,7 +227,6 @@
 
 		  {msg && <div className="max-w-6xl mx-auto mt-4 p-3 rounded-xl bg-emerald-900/40 border border-emerald-700/40 text-emerald-200 text-sm">{msg}</div>}
 
-		  {/* 修煉 / 功法 / 法寶 */}
 		  <section className="max-w-6xl mx-auto mt-6 grid md:grid-cols-3 gap-6">
 			<Card title="打坐修煉">
 			  <div className="text-sm text-slate-300">每次點擊 +{clickGain.toFixed(1)} 靈力；每秒自動 +{autoPerSec.toFixed(1)} 靈力</div>
@@ -297,7 +281,6 @@
 			</Card>
 		  </section>
 
-		  {/* 突破 / 飛升 */}
 		  <section className="max-w-6xl mx-auto mt-6 grid md:grid-cols-2 gap-6">
 			<Card title="突破境界">
 			  {nextRealm ? (
@@ -325,13 +308,11 @@
 			</Card>
 		  </section>
 
-		  {/* 新手/每日 + 排行榜 */}
 		  <section className="max-w-6xl mx-auto mt-6 grid md:grid-cols-2 gap-6">
 			<RewardsBar s={s} setS={setS} setMsg={setMsg} />
 			<Leaderboard s={s} />
 		  </section>
 
-		  {/* 存檔 / 匯入 */}
 		  <section className="max-w-6xl mx-auto mt-6 grid md:grid-cols-2 gap-6">
 			<Card title="存檔 / 匯入">
 			  <div className="flex flex-wrap gap-2">
@@ -345,7 +326,6 @@
 			</Card>
 		  </section>
 
-		  {/* 開發者加值工具（本機測試） */}
 		  <section className="max-w-6xl mx-auto mt-6">
 			<DevTools setS={setS} setMsg={setMsg} />
 		  </section>
@@ -358,6 +338,7 @@
 	}
 
 	/* ============================ 子元件 ============================ */
+
 	function Card({ title, children }) {
 	  return (
 		<div className="rounded-2xl p-4 md:p-5 bg-white/5 border border-white/10 shadow-xl">
@@ -368,7 +349,6 @@
 		</div>
 	  );
 	}
-
 	function Stat({ label, value }) {
 	  return (
 		<div className="rounded-xl px-3 py-2 bg-white/5 border border-white/10">
@@ -381,13 +361,13 @@
 	function RewardsBar({ s, setS, setMsg }) {
 	  const claimStarter = () => {
 		if (s.meta.starterGift) return;
-		setS((p) => ({ ...p, stones: p.stones + 500, meta: { ...p.meta, starterGift: true } }));
+		setS(p => ({ ...p, stones: p.stones + 500, meta: { ...p.meta, starterGift: true } }));
 		setMsg("新手禮包已領取：靈石 +500！");
 	  };
 	  const claimDaily = () => {
 		if (s.login.dayClaimed === true) return;
 		const gain = 30 + Math.min(6, s.login.streak) * 10;
-		setS((p) => ({ ...p, stones: p.stones + gain, login: { ...p.login, dayClaimed: true } }));
+		setS(p => ({ ...p, stones: p.stones + gain, login: { ...p.login, dayClaimed: true } }));
 		setMsg(`每日修煉有成：靈石 +${gain}`);
 	  };
 
@@ -451,7 +431,6 @@
 	  );
 	}
 
-	/* 背景動畫 */
 	function MeditationHeroImg({ realmKey }) {
 	  const stageKey = useMemo(() => {
 		if (realmKey === 'daluo') return 'daluo';
@@ -530,7 +509,7 @@
 
 	  const start = () => {
 		if (running) return;
-		setState((p)=> ({ ...p, running:true, logs:[], finished:false }));
+		setState(p=> ({ ...p, running:true, logs:[], finished:false }));
 
 		let stage = 1;
 		let chance = 0.5;
@@ -538,7 +517,7 @@
 
 		const step = () => {
 		  if (stage > 9) {
-			setState((p)=> ({ ...p, running:false, finished:true }));
+			setState(p=> ({ ...p, running:false, finished:true }));
 			onFinish({ success:true, daoUsed, failStage:null, costQi });
 			return;
 		  }
@@ -548,10 +527,10 @@
 		  const pass = Math.random() < rollChance;
 
 		  if (useDaoHeart) daoUsed += 1;
-		  setState((p)=> ({ ...p, logs: [...p.logs, { stage, pass, chance: rollChance }] }));
+		  setState(p=> ({ ...p, logs: [...p.logs, { stage, pass, chance: rollChance }] }));
 
 		  if (!pass) {
-			setState((p)=> ({ ...p, running:false, finished:true }));
+			setState(p=> ({ ...p, running:false, finished:true }));
 			onFinish({ success:false, daoUsed, failStage:stage, costQi });
 			return;
 		  }
@@ -573,7 +552,7 @@
 				<h3 className="text-xl font-semibold">九重天雷 · 渡劫晉階 → {nextName}</h3>
 			  </div>
 			  <label className="flex items-center gap-2 text-sm">
-				<input type="checkbox" checked={useDaoHeart} onChange={(e)=> setState((p)=> ({ ...p, useDaoHeart: e.target.checked }))} />
+				<input type="checkbox" checked={useDaoHeart} onChange={(e)=> setState(p=> ({ ...p, useDaoHeart: e.target.checked }))} />
 				使用道心（每重 +8%）
 			  </label>
 			</div>
@@ -597,7 +576,7 @@
 
 			<div className="flex items-center justify-end gap-2">
 			  {!finished && <button onClick={start} disabled={running} className={`px-4 py-2 rounded-lg ${running? 'bg-slate-700 cursor-not-allowed':'bg-indigo-700 hover:bg-indigo-600'}`}>{running? '渡劫中…':'開始渡劫'}</button>}
-			  {finished && <button onClick={()=> setState((p)=> ({ ...p, open:false }))} className="px-4 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-600">確定</button>}
+			  {finished && <button onClick={()=> setState(p=> ({ ...p, open:false }))} className="px-4 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-600">確定</button>}
 			</div>
 		  </div>
 		</div>

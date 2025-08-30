@@ -1,9 +1,8 @@
-// 不要預產、不要快取
-export const revalidate = 0;
-export const dynamic = "force-dynamic";
-
-// 只負責載入 Client 元件（千萬別在這裡用任何 hook）
+// app/xiuxian/page.jsx
 import ClientPage from "./ClientPage";
+
+export const revalidate = 0;            // 不快取
+export const dynamic = "force-dynamic"; // 不中斷預先產生
 
 export default function Page() {
   return <ClientPage />;
