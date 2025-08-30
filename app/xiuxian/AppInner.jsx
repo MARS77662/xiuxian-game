@@ -31,8 +31,6 @@
 
 	const yearsToDays = toDays;  // 👈 加這行別名，讓 yearsToDays 也可用
 
-	const SAVE_KEY = "xiuxian-save-v1";
-
 	// 安全數字/布林
 	const num = (x, d = 0) => {
 	  const n = Number(x);
