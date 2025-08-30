@@ -28,19 +28,7 @@
 	  jiutian:{ name: "九天玄功",  desc: "自動產出 +10%/Lv", baseCost: 260, growth: 1.35, autoPct: 0.10 },
 	};
 
-	const BACKGROUNDS = {
-	  _default: "/bg/default.jpg",
-	  lianti: "/bg/lianti.jpg",
-	  lianqi: "/bg/lianqi.jpg",
-	  zhujii: "/bg/zhujii.jpg",
-	  jindan: "/bg/jindan.jpg",
-	  yuanying: "/bg/yuanying.jpg",
-	  dujie: "/bg/dujie.jpg",
-	  zhenxian: "/bg/zhenxian.jpg",
-	  daluo: "/bg/daluo.jpg",
-	};
-
-	/* ---------- 法寶 ---------- */
+		/* ---------- 法寶 ---------- */
 	const ARTIFACTS = {
 	  qingxiao: { key: "qingxiao", name: "青霄劍",   desc: "點擊效率 +25%",   clickPct: 0.25, autoPct: 0,    brPct: 0,    cost: 500,  unlockRealmIndex: 2 },
 	  zijinhu:  { key: "zijinhu",  name: "紫金葫",   desc: "自動產出 +15%",   clickPct: 0,    autoPct: 0.15, brPct: 0,    cost: 1000, unlockRealmIndex: 3 },
