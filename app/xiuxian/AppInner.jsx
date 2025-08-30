@@ -173,9 +173,9 @@ function computeBonuses(s) {
     safeSkills.wuxing  * SKILLS.wuxing.autoPct +
     safeSkills.jiutian * SKILLS.jiutian.autoPct;
 
-  const artAutoBonus  = s?.artifacts?.zijinhu  ? ARTIFACTS.zijinhu.autoPct   : 0;
-  const artClickBonus = s?.artifacts?.qingxiao ? ARTIFACTS.qingxiao.clickPct : 0;
-  const artBreakBonus = s?.artifacts?.zhenpan  ? ARTIFACTS.zhenpan.brPct     : 0;
+	const artAutoBonus  = s?.artifacts?.zijinhu  ? ARTIFACTS.zijinhu.autoPct   : 0;
+	const artClickBonus = s?.artifacts?.qingxiao ? ARTIFACTS.qingxiao.clickPct : 0;
+	const artBreakBonus = s?.artifacts?.zhenpan  ? ARTIFACTS.zhenpan.brPct     : 0;
 
   const talentAutoBonus  = (Number(s?.talent?.auto)  || 0) * 0.10;
   const talentClickBonus = (Number(s?.talent?.click) || 0) * 0.10;
@@ -346,7 +346,7 @@ export default function AppInner() {
 
   const buyArtifact = (ak) => {
     const a = ARTIFACTS[ak];
-    if (s.artifacts[ak]) { setMsg("已購買過此法寶。"); return; }
+    if (s?.artifacts?.[ak]) { setMsg("已購買過此法寶。"); return; }
     if (s.realmIndex < a.unlockRealmIndex) { setMsg("境界未到，無法驅使此法寶。"); return; }
     if ((Number(s.stones) || 0) < a.cost) { setMsg("靈石不足。"); return; }
     setS((p) => ({
@@ -378,7 +378,7 @@ export default function AppInner() {
     }
 
     const baseChance = nextRealm.baseChance ?? 0.5;
-    const bonus  = (useDaoHeart ? 0.10 : 0) + (s.artifacts.zhenpan ? ARTIFACTS.zhenpan.brPct : 0);
+    const bonus  = (useDaoHeart ? 0.10 : 0) + (s?.artifacts?.zhenpan ? ARTIFACTS.zhenpan.brPct : 0);
     const chance = Math.min(0.98, baseChance + bonus);
     const success = Math.random() < chance;
 
@@ -460,7 +460,7 @@ export default function AppInner() {
         <DujieModal
           state={dujie}
           setState={setDujie}
-          artBreakBonus={s.artifacts.zhenpan ? ARTIFACTS.zhenpan.brPct : 0}
+          artBreakBonus={s?.artifacts?.zhenpan ? ARTIFACTS.zhenpan.brPct : 0}
           onFinish={({ success, daoUsed, failStage, costQi }) => {
             if (success) {
               setS((p) => {
@@ -526,9 +526,9 @@ export default function AppInner() {
         <Card title="法寶鋪（隨境界解鎖）">
           <ul className="space-y-2 text-sm">
             {Object.values(ARTIFACTS).map((a)=> {
-              const owned     = !!s.artifacts[a.key];
-              const unlocked  = s.realmIndex >= a.unlockRealmIndex;
-              const canBuy    = unlocked && !owned && (Number(s.stones || 0) >= a.cost);
+              const owned     = !!s?.artifacts?.[a.key];
+			  const unlocked  = (s?.realmIndex ?? 0) >= a.unlockRealmIndex;
+			  const canBuy    = unlocked && !owned && (Number(s?.stones || 0) >= a.cost);
               return (
                 <li key={a.key} className="flex items-center justify-between gap-3 p-2 rounded-lg bg-black/30 border border-slate-700/40">
                   <div>
