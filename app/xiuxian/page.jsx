@@ -328,7 +328,6 @@ function Creator({ onDone }){
             </button>
           )}
         </div>
-    </div>
   );
 }
 
