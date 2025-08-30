@@ -316,11 +316,15 @@ useEffect(() => {
   }, [autoPerSec]);
 
   /* ============ 動作 ============ */
-  const cultivate = () => setS((p) => {
+  const cultivate = () => {
+  console.log("clicked cultivate!");
+  setS((p) => {
     let next = { ...p, qi: (Number(p.qi) || 0) + clickGain };
-    next = safePunish(next);
+    console.log("qi:", p.qi, "=>", next.qi);
     return next;
   });
+};
+
 
   const refineStones = () => {
     const qiNow = Number(s.qi || 0);
