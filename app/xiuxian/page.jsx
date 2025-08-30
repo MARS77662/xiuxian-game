@@ -299,7 +299,6 @@ function Creator({ onDone }){
                 * {cfg?.rules?.desc || "屬性將影響修煉、自動產出、事件與突破率"}（門派加成於分配後套用）
               </div>
           )
-        </div>
 
         {/* 導覽 */}
         <div className="mt-6 flex justify-between">
