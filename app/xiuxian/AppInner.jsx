@@ -217,9 +217,14 @@
 	  });
 
 	// 讀檔 + 補齊舊檔欄位 + 每日登入（只在掛載時跑一次）
+	// 第一次載入：只在客戶端讀檔，且只合併有效結構
 	useEffect(() => {
-  setS(prev => {
-    let next = prev;
+	  const saved = loadSaveSafely();
+	  if (saved) {
+		setS((p) => ({ ...p, ...saved }));
+	  }
+	}, []);
+
 
     // 讀檔
     try {
@@ -515,6 +520,11 @@
 				  const owned = s.artifacts[a.key];
 				  const unlocked = s.realmIndex >= a.unlockRealmIndex;
 				  const canBuy = unlocked && !owned && s.stones >= a.cost;
+				  const stones = Number(s?.stones ?? 0);     // 代替直接用 s.stones
+					const can = stones >= cost;
+
+					<button onClick={()=>buySkill(k)} disabled={!can}>…</button>
+
 				  return (
 					<li key={a.key} className="flex items-center justify-between gap-3 p-2 rounded-lg bg-black/30 border border-slate-700/40">
 					  <div>
