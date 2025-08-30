@@ -39,7 +39,7 @@
 	  playerName: "散仙",
 	  meta: { starterGift: false },
 	  login: { last: "", streak: 0, dayClaimed: false },
-	  lastTick: Date.now(),
+	  lastTick: 0,
 	});
 
 	/* ============================ 主元件 ============================ */
@@ -98,6 +98,8 @@
 
 	  // 自動產出
 	  useEffect(() => {
+		  setS(p => ({ ...p, lastTick: Date.now() }));
+		}, []);
 		tickRef.current && clearInterval(tickRef.current);
 		tickRef.current = setInterval(() => setS((p) => ({ ...p, qi: p.qi + autoPerSec })), 1000);
 		return () => tickRef.current && clearInterval(tickRef.current);
