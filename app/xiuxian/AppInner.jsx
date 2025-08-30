@@ -8,9 +8,9 @@
 
 	/* ---------- 常量 ---------- */
 	const SAVE_KEY = "xiuxian-save-v1";
-	const BASE_AUTO_PER_SEC = 1;
-	const BASE_CLICK_GAIN = 1;
-	const QI_TO_STONE = 100;
+	const BASE_AUTO_PER_SEC = 100;
+	const BASE_CLICK_GAIN = 100;
+	const QI_TO_STONE = 200;
 
 	const ARTIFACTS = {
 	  qingxiao: { key: "qingxiao", name: "青霄劍", desc: "點擊效率 +25%", clickPct: 0.25, autoPct: 0, brPct: 0, cost: 500, unlockRealmIndex: 2 },
@@ -542,8 +542,8 @@
 			onFinish({ success:true, daoUsed, failStage:null, costQi });
 			return;
 		  }
-		  const base = Math.max(0.55, (0.35 + artBreakBonus));
-		  const addDao = useDaoHeart ? 0.08 : 0;
+		  const base = Math.max(0.75, (0.35 + artBreakBonus));
+		  const addDao = useDaoHeart ? 0.15 : 0;
 		  const rollChance = Math.min(0.98, (stage === 1 ? base : chance) + addDao);
 		  const pass = Math.random() < rollChance;
 
@@ -555,7 +555,7 @@
 			onFinish({ success:false, daoUsed, failStage:stage, costQi });
 			return;
 		  }
-		  chance = Math.max(0.2, rollChance - 0.03);
+		  chance = Math.max(0.6, rollChance - 0.03);
 		  stage += 1;
 		  setTimeout(step, 800);
 		};
