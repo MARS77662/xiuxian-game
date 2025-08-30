@@ -1,6 +1,8 @@
 	"use client";
 
 	import { useEffect, useRef, useState, useMemo } from "react";
+	import { BACKGROUNDS } from "@/data/backgrounds";
+
 
 	/* ---------- 常量（你可依需求微調） ---------- */
 	const SAVE_KEY = "xiuxian-save-v1";
