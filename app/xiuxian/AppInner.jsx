@@ -218,18 +218,7 @@ export default function AppInner() {
     clickGain,
   };
 }
-  // 安全 skills 代理（避免 s.skills 炸掉）
-const safeSkills = (() => {
-  const k = s?.skills;
-  if (k && typeof k === 'object') {
-    return {
-      tuna:    Number(k.tuna ?? 0),
-      wuxing:  Number(k.wuxing ?? 0),
-      jiutian: Number(k.jiutian ?? 0),
-    };
-  }
-  return { tuna: 0, wuxing: 0, jiutian: 0 };
-})();
+
 
 
 
