@@ -1,0 +1,53 @@
+	.ui-userinfo{
+	  position:absolute; top:10px; left:10px;
+	  display:flex; align-items:flex-start; gap:10px;
+	  color:#fff; font-family: "Noto Sans TC", system-ui, sans-serif;
+	  background: linear-gradient(180deg, rgba(10,14,18,.65), rgba(10,14,18,.35));
+	  border: 1px solid rgba(160,220,255,.25);
+	  border-radius:12px; padding:8px 12px;
+	  backdrop-filter: blur(6px);
+	  box-shadow: 0 6px 20px rgba(0,0,0,.25);
+	  z-index: 9999;
+	}
+	.ui-avatar{
+	  width:44px; height:44px; border-radius:50%;
+	  border:2px solid #8EE6FF; box-shadow:0 0 12px rgba(120,220,255,.6) inset;
+	}
+	.ui-col{ display:flex; flex-direction:column; min-width:240px; }
+
+	.ui-row{ display:flex; align-items:center; gap:6px; line-height:1; }
+	.ui-nickname{ font-weight:700; font-size:15px; letter-spacing:.5px; }
+	.ui-sect{ opacity:.85; font-size:12px; }
+
+	.badge{
+	  font-size:12px; padding:2px 6px; border-radius:999px;
+	  background: linear-gradient(90deg, #3ac7ff, #8f6bff);
+	  box-shadow: 0 0 10px rgba(110,160,255,.6);
+	}
+
+	.ui-bars{ margin-top:6px; display:grid; gap:4px; }
+	.bar{ display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:8px; }
+	.bar-label{ font-size:11px; opacity:.9; width:30px; text-align:right; }
+	.bar-track{
+	  height:8px; background: rgba(255,255,255,.12); border-radius:999px; overflow:hidden;
+	}
+	.bar-fill{
+	  height:100%; width:50%;
+	  background: linear-gradient(90deg, #36d1ff, #b3f0ff);
+	  box-shadow: 0 0 12px rgba(110,220,255,.8);
+	  transition: width .25s ease;
+	}
+	.bar-fill.xp{ background: linear-gradient(90deg, #ffd36a, #fff1b8); box-shadow:none; }
+	.bar-text{ font-size:11px; opacity:.85; min-width:70px; text-align:right; }
+
+	.ui-res{ margin-top:6px; display:flex; gap:12px; font-size:13px; }
+	.res b{ font-variant-numeric: tabular-nums; }
+
+	.ui-userinfo.realm-lianqi  .ui-avatar{ border-color:#58f; }
+	.ui-userinfo.realm-zhujii  .ui-avatar{ border-color:#a95bff; }
+	.ui-userinfo.realm-jindan  .ui-avatar{ border-color:#ffb14d; }
+	.ui-userinfo.realm-yuanying .ui-avatar{ border-color:#ff5bd1; }
+
+	@media (max-width: 768px){
+	  .ui-userinfo{ transform: scale(.92); transform-origin: top left; }
+	}
