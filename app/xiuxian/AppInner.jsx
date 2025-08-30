@@ -458,7 +458,15 @@
           alt="打坐修煉"
           className="w-64 sm:w-80 md:w-[420px] drop-shadow-xl animate-float-slow select-none pointer-events-none"
         />
-      </div>
+		
+	  {/* 文字區塊 */}
+	  <div className="ml-0 md:ml-10 text-center md:text-left max-w-[520px]">
+		<h3 className="text-2xl md:text-3xl font-semibold leading-tight">入定·吐納</h3>
+		<p className="text-slate-300 mt-1 leading-relaxed">
+		  隨呼吸起伏，靈氣自丹田匯聚——點擊修煉或嘗試突破吧。
+		</p>
+	  </div>
+	</div>
 
       {/* 光暈效果 */}
       <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none">
@@ -477,6 +485,7 @@
           />
         ))}
       </div>
+
 
       {/* CSS 動畫 */}
       <style>{`
