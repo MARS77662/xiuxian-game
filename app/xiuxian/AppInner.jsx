@@ -618,7 +618,7 @@ function Stat({ label, value }) {
   );
 }
 
-function function RewardsBar({ s, setS, setMsg }) {
+function RewardsBar({ s, setS, setMsg }) {
   const starterClaimed = !!s?.meta?.starterGift;
   const dayClaimed     = s?.login?.dayClaimed === true;
   const streak         = Number(s?.login?.streak) || 0;
