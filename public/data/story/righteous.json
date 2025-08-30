@@ -1,0 +1,25 @@
+{
+  "meta": { "title": "主線·序章（正派）", "version": "1.0" },
+  "scenes": [
+    {
+      "bg": "/bg/sect-righteous.jpg",
+      "text": ["你來到天劍宗山門。白霧繚繞，劍氣縱橫。", "長老凝視你：『自報道號，可入試。』"]
+    },
+    {
+      "bg": "/bg/sect-righteous.jpg",
+      "text": ["入門試劍：木人樁前，你握劍立定。"],
+      "choices": [
+        { "text": "以正御邪（守勢）", "flag": { "path": "guard" } },
+        { "text": "以鋒破局（攻勢）", "flag": { "path": "strike" } }
+      ]
+    },
+    {
+      "bg": "/bg/bg-ink-peak.jpg",
+      "text": ["你於藏劍閣前立誓：以劍衛道，不負蒼生。"]
+    },
+    {
+      "bg": "/bg/bg-clouds.jpg",
+      "text": ["師兄遞來入門口訣：『吐納‧三息』。", "你感到丹田微熱——修行之門已開。"]
+    }
+  ]
+}

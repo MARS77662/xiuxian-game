@@ -1,0 +1,25 @@
+{
+  "meta": { "title": "主線·序章", "version": "1.0" },
+  "scenes": [
+    {
+      "bg": "/bg/sect-evil.jpg",
+      "text": ["夜雨如絲，魔焰城外。", "一卷禁術在你掌心悄然開合。"]
+    },
+    {
+      "bg": "/bg/sect-evil.jpg",
+      "text": ["血河壇試煉：以己血祭，換取片刻神通。"],
+      "choices": [
+        { "text": "以血換力（短期爆發）", "flag": { "path": "blood" } },
+        { "text": "以魂為契（長線祕約）", "flag": { "path": "soul" } }
+      ]
+    },
+    {
+      "bg": "/bg/bg-storm.jpg",
+      "text": ["雷光映照城垣，你立於風雨間——逆伐之道，從此開始。"]
+    },
+    {
+      "bg": "/bg/bg-clouds.jpg",
+      "text": ["黑袍者授你《煉獄吐納》殘篇。", "你感到經脈隱隱作痛，卻也更為敏銳。"]
+    }
+  ]
+}

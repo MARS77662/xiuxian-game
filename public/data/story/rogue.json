@@ -1,0 +1,25 @@
+{
+  "meta": { "title": "主線·序章", "version": "1.0" },
+  "scenes": [
+    {
+      "bg": "/bg/sect-rogue.jpg",
+      "text": ["市集喧鬧，你於茶攤邊掩卷而坐。", "一位老行腳遞來破舊玉簡。"]
+    },
+    {
+      "bg": "/bg/sect-rogue.jpg",
+      "text": ["三試：觀氣、聽風、問心。你自選其一。"],
+      "choices": [
+        { "text": "觀氣（洞察）", "flag": { "path": "insight" } },
+        { "text": "聽風（機緣）", "flag": { "path": "fortune" } }
+      ]
+    },
+    {
+      "bg": "/bg/bg-ink-lite.jpg",
+      "text": ["你踏上無門之門：天地即為師，機緣在足下。"]
+    },
+    {
+      "bg": "/bg/bg-clouds.jpg",
+      "text": ["玉簡內是雜記與體悟，你從中得一式吐納法。"]
+    }
+  ]
+}
