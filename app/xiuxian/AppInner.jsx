@@ -631,7 +631,6 @@ function computeBonuses(s) {
       </footer>
     </div>
   );
-}
 
 /* ===================== 子元件 ===================== */
 function Card({ title, children }) {
