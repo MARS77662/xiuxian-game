@@ -10,6 +10,18 @@ const SAVE_KEY = "xiuxian-save-v1";
 const BASE_AUTO_PER_SEC = 100;   // 每秒自動靈力（會再乘各種加成）
 const BASE_CLICK_GAIN   = 500;   // 每次點擊靈力
 const QI_TO_STONE       = 100;   // 多少靈力煉 1 枚靈石
+// 放在 useState 之後
+const safeSkills = useMemo(() => {
+  const k = s?.skills;
+  if (k && typeof k === 'object') {
+    return {
+      tuna:    Number(k.tuna ?? 0),
+      wuxing:  Number(k.wuxing ?? 0),
+      jiutian: Number(k.jiutian ?? 0),
+    };
+  }
+  return { tuna: 0, wuxing: 0, jiutian: 0 };
+}, [s?.skills]);
 
 /* ====== 壽元：各境界上限（年） ====== */
 const LIFE_YEARS_BY_REALM = [30, 60, 120, 240, 480, 960, 1500, 3000];
@@ -200,30 +212,44 @@ useEffect(() => {
   const saved = loadSaveSafely();
   if (!saved) return;
   setS(prev => {
+    // 先合併
     let next = { ...prev, ...saved };
 
-    // --- 遷移補丁：確保 skills 一定是「物件」 ---
-    if (typeof next.skills !== 'object' || next.skills === null) {
-      const n = Number(next.skills) || 0;         // 舊版可能整個是數字
+    // 🔒 不讓奇怪的 saved.skills 蓋掉結構
+    if (typeof saved.skills !== 'object' || saved.skills === null) {
+      // 舊版可能把 skills 存成數字或空 → 轉成物件
+      const n = Number(saved.skills) || 0;
       next.skills = { tuna: n, wuxing: 0, jiutian: 0 };
     } else {
-      next.skills.tuna    = Number(next.skills.tuna ?? 0);
-      next.skills.wuxing  = Number(next.skills.wuxing ?? 0);
-      next.skills.jiutian = Number(next.skills.jiutian ?? 0);
+      // 正常情況也做數字化與預設值補齊
+      next.skills = {
+        tuna:    Number(saved.skills.tuna ?? prev.skills?.tuna ?? 0),
+        wuxing:  Number(saved.skills.wuxing ?? prev.skills?.wuxing ?? 0),
+        jiutian: Number(saved.skills.jiutian ?? prev.skills?.jiutian ?? 0),
+      };
     }
     return next;
   });
 }, []);
 
+
   /* 單一自動存檔 */
   useEffect(() => { writeSave(s); }, [s]);
 
-  /* 加成 */
-  const realm = REALMS[s.realmIndex] ?? REALMS[REALMS.length - 1];
-  const skillAutoBonus =
-    s.skills.tuna * SKILLS.tuna.autoPct +
-    s.skills.wuxing * SKILLS.wuxing.autoPct +
-    s.skills.jiutian * SKILLS.jiutian.autoPct;
+/* 加成 */
+const realm = REALMS[s.realmIndex] ?? REALMS[REALMS.length - 1];
+
+// 統一用 safeSkills 保護，避免 undefined
+const safeSkills = {
+  tuna:    Number(s?.skills?.tuna ?? 0),
+  wuxing:  Number(s?.skills?.wuxing ?? 0),
+  jiutian: Number(s?.skills?.jiutian ?? 0),
+};
+
+const skillAutoBonus =
+  safeSkills.tuna    * SKILLS.tuna.autoPct +
+  safeSkills.wuxing  * SKILLS.wuxing.autoPct +
+  safeSkills.jiutian * SKILLS.jiutian.autoPct;
   const artAutoBonus   = s.artifacts.zijinhu ? ARTIFACTS.zijinhu.autoPct : 0;
   const artClickBonus  = s.artifacts.qingxiao ? ARTIFACTS.qingxiao.clickPct : 0;
   const artBreakBonus  = s.artifacts.zhenpan ? ARTIFACTS.zhenpan.brPct : 0;
@@ -282,7 +308,7 @@ useEffect(() => {
   };
 
   const buySkill = (sk) => {
-    const def = SKILLS[sk], lv = Number(s.skills[sk] || 0);
+    const def = SKILLS[sk], lv = Number(safeSkills[sk] ?? 0);
     const cost = costOfSkill(def.baseCost, def.growth, lv);
     if ((Number(s.stones) || 0) < cost) { setMsg("靈石不足。"); return; }
     setS((p) => ({
