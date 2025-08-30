@@ -108,11 +108,18 @@ const safePunish = (stateObj) => {
   try {
     if (typeof punishQiOverflowRaw === "function") {
       const maybe = punishQiOverflowRaw(stateObj);
-      return maybe ?? stateObj;
+      // 只有在回傳是物件，且保留了合法的 qi 才採用
+      if (maybe && typeof maybe === "object" && Number.isFinite(Number(maybe.qi))) {
+        return { ...maybe, qi: Number(maybe.qi) }; // 確保是數字
+      }
     }
-  } catch {}
-  return stateObj;
+  } catch {
+    // 忽略懲罰模組的任何例外
+  }
+  // 預設回傳原狀態，並補上 qi
+  return { ...stateObj, qi: Number(stateObj?.qi) || 0 };
 };
+
 
 /* ===================== 遊戲資料 ===================== */
 const REALMS = [
@@ -326,33 +333,39 @@ useEffect(() => {
 };
 
 
-  const refineStones = () => {
-    const qiNow = Number(s.qi || 0);
-    if (qiNow < QI_TO_STONE) { setMsg("靈力不足，至少需要 100 靈力才能煉化為 1 枚靈石。"); return; }
-    const stonesGain = Math.floor(qiNow / QI_TO_STONE);
-    const qiCost = stonesGain * QI_TO_STONE;
-    setS((p) => {
-      let next = {
-        ...p,
-        qi: Math.max(0, (Number(p.qi) || 0) - qiCost),
-        stones: (Number(p.stones) || 0) + stonesGain,
-      };
-      next = safePunish(next);
-      return next;
-    });
-    setMsg(`煉化完成，獲得 ${stonesGain} 枚靈石。`);
-  };
+const refineStones = () => {
+  const qiNow = Number(s.qi || 0);
+  if (qiNow < QI_TO_STONE) { setMsg("靈力不足，至少需要 100 靈力才能煉化為 1 枚靈石。"); return; }
+  const stonesGain = Math.floor(qiNow / QI_TO_STONE);
+  const qiCost = stonesGain * QI_TO_STONE;
+  setS((p) => {
+    let next = {
+      ...p,
+      qi: Math.max(0, (Number(p.qi) || 0) - qiCost),
+      stones: (Number(p.stones) || 0) + stonesGain,
+    };
+    console.log("[refine] qi:", p.qi, "->", next.qi, " stones +", stonesGain);
+    next = safePunish(next);
+    return next;
+  });
+};
 
   const buySkill = (sk) => {
-    const def = SKILLS[sk], lv = Number(safeSkills[sk] ?? 0);
-    const cost = costOfSkill(def.baseCost, def.growth, lv);
-    if ((Number(s.stones) || 0) < cost) { setMsg("靈石不足。"); return; }
-    setS((p) => ({
+  const def  = SKILLS[sk];
+  const lv   = Number(safeSkills[sk] ?? 0);
+  const cost = costOfSkill(def.baseCost, def.growth, lv);
+  if ((Number(s.stones) || 0) < cost) { setMsg("靈石不足。"); return; }
+  setS((p) => {
+    let next = {
       ...p,
       stones: Math.max(0, (Number(p.stones) || 0) - cost),
       skills: { ...p.skills, [sk]: (Number(p.skills?.[sk]) || 0) + 1 },
-    }));
-  };
+    };
+    console.log(`[buySkill:${sk}] -> Lv.${(Number(p.skills?.[sk])||0)+1}, stones: ${p.stones} -> ${next.stones}`);
+    next = safePunish(next);
+    return next;
+  });
+};
 
   const buyArtifact = (ak) => {
   const a = ARTIFACTS[ak];
