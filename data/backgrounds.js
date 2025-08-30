@@ -1,11 +1,12 @@
+// /data/backgrounds.js
 export const BACKGROUNDS = {
-  _default: "/bg-ink.jpg",
-  lianti: "/bg-ink-lite.jpg",
-  lianqi: "/bg-ink-lite.jpg",
-  zhujii: "/bg-ink.jpg",        // ← 如果你的 REALMS 還是 zhujii，這行就改成 zhujii
-  jiedan: "/bg-ink-peak.jpg",
-  yuanying: "/bg-ink-peak.jpg",
-  dujie: "/bg-storm.jpg",
-  zhenxian: "/bg-clouds.jpg",
-  daluo: "/bg-stars.jpg",
+  _default: "/bg/bg-ink.jpg",
+  lianti: "/bg/bg-ink-lite.jpg",
+  lianqi: "/bg/bg-ink-lite.jpg",
+  zhujii: "/bg/bg-ink.jpg",
+  jindan: "/bg/bg-ink-peak.jpg",   // ✅ 修正：原本 jiedan → 改成 jindan
+  yuanying: "/bg/bg-ink-peak.jpg",
+  dujie: "/bg/bg-storm.jpg",
+  zhenxian: "/bg/bg-clouds.jpg",
+  daluo: "/bg/bg-stars.jpg",
 };
