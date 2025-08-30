@@ -192,7 +192,7 @@ function Landing({ onEnter }){
 		  sectName: sect?.name || null,
 		  sectBonuses: sect?.bonuses || {},
 		  attrs,
-		  applyBonusAfter: cfg?.rules?.applyBonusAfterAllocate === true
+		  applyBonusAfter: cfg?.rules?.applyBonusAfterAllocate === true,
 		};
 		try { localStorage.setItem("xiuxian-profile", JSON.stringify(payload)); } catch {}
 		onDone(payload);
