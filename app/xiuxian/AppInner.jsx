@@ -173,7 +173,7 @@ const defaultState = () => ({
 /* ===================== 主元件 ===================== */
 export default function AppInner() {
   const [s, setS] = useState(() => defaultState());
-  computeBonuses(s) {
+  computeBonuses(s) 
   const safeSkills = {
     tuna:    Number(s?.skills?.tuna    ?? 0),
     wuxing:  Number(s?.skills?.wuxing  ?? 0),
