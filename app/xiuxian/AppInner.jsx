@@ -8,8 +8,8 @@
 
 	/* ---------- 常量 ---------- */
 	const SAVE_KEY = "xiuxian-save-v1";
-	const BASE_AUTO_PER_SEC = 100;
-	const BASE_CLICK_GAIN = 100;
+	const BASE_AUTO_PER_SEC = 10000;
+	const BASE_CLICK_GAIN = 5000;
 	const QI_TO_STONE = 200;
 
 	const ARTIFACTS = {
