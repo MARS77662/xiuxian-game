@@ -1,16 +1,32 @@
-	"use client";
-	import { useState } from "react";
+	 "use client";
+	import { useEffect, useState } from "react";
 	import AppInner from "./AppInner";
 
-	/* ========= 基礎資料 ========= */
+	/* ========= 常量 ========= */
+	const SAVE_KEY = "xiuxian-save-v1";     // AppInner 自動存檔
+	const PROFILE_KEY = "xiuxian-profile";  // 創角檔
+	const ENTERED_KEY = "xiuxian-entered";  // 是否按過「進入修仙世界」
+	const STORY_KEY = "xiuxian-story";      // 劇情進度（未完成續看）
+	const CAP = 28;                          // 屬性總點上限
+
+	// 門派
 	const FACTIONS = [
 	  { type: "正派", key: "righteous", title: "正派", desc: "根基穩固、資源豐厚，穩健發展" },
 	  { type: "邪修", key: "evil",      title: "邪修", desc: "偏鋒爆發、進境迅猛，但風險亦高" },
 	  { type: "散修", key: "rogue",     title: "散修", desc: "自由逍遙、悟性通達、均衡成長" },
 	];
+
+	// 入口 / 門派 / 通用背景（請把對應圖片放入 public/bg/）
+	const BG_DEFAULT = "/bg/bg-clouds.jpg";
+	const BG_BY_FACTION = {
+	  "正派": "/bg/sect-righteous.jpg",
+	  "邪修": "/bg/sect-evil.jpg",
+	  "散修": "/bg/sect-rogue.jpg",
+	};
+
+	// 隨機名
 	const RANDOM_NAMES = ["蘇子夜","白無塵","北冥秋","南宮霜","顧長歌","雲清","洛玄一","陸沉舟"];
 	const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
-	const CAP = 28; // 屬性總點上限
 
 	/* ========= 小元件 ========= */
 	function Stepper({ step }){
@@ -25,7 +41,6 @@
 		</ol>
 	  );
 	}
-
 	function FactionCard({ active, title, desc, onClick }){
 	  return (
 		<button
@@ -40,7 +55,6 @@
 		</button>
 	  );
 	}
-
 	function NumberRow({ label, value, onChange }){
 	  return (
 		<div className="grid grid-cols-[72px_1fr_auto] items-center gap-3">
@@ -58,19 +72,12 @@
 	  );
 	}
 
-	/* ========= 開場頁（登入/封面） ========= */
+	/* ========= ① 開場頁（登入/封面） ========= */
 	function Landing({ onEnter }){
 	  return (
 		<div className="min-h-screen relative text-slate-100">
-		  {/* 背景圖 */}
-		  <img
-			src="/bg/bg-clouds.jpg"  // 放在 public/bg/
-			alt="背景"
-			className="absolute inset-0 w-full h-full object-cover opacity-70"
-		  />
+		  <img src={BG_DEFAULT} alt="背景" className="absolute inset-0 w-full h-full object-cover opacity-70" />
 		  <div className="absolute inset-0 bg-black/55" />
-
-		  {/* 置中內容 */}
 		  <div className="relative z-10 h-screen flex flex-col items-center justify-center px-6">
 			<img src="/logo.png" alt="Logo" className="h-20 mb-4 drop-shadow-[0_6px_30px_rgba(0,0,0,.6)]" />
 			<h1 className="text-4xl md:text-5xl font-extrabold tracking-wide">修仙 · 啟程</h1>
@@ -86,7 +93,7 @@
 	  );
 	}
 
-	/* ========= 創角嚮導 ========= */
+	/* ========= ② 創角嚮導 ========= */
 	function Creator({ onDone }){
 	  const [step, setStep] = useState(0); // 0:命名 1:門派 2:屬性
 	  const [name, setName] = useState("蘇子夜");
@@ -104,7 +111,7 @@
 
 	  const finish = ()=>{
 		const payload = { name: (name||"").trim() || "無名散修", faction, attrs };
-		try { localStorage.setItem("xiuxian-profile", JSON.stringify(payload)); } catch {}
+		try { localStorage.setItem(PROFILE_KEY, JSON.stringify(payload)); } catch {}
 		onDone(payload);
 	  };
 
@@ -112,7 +119,7 @@
 		<div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 text-slate-100">
 		  {/* 頂部 Banner */}
 		  <div className="relative h-48 w-full overflow-hidden">
-			<img src="/bg/bg-clouds.jpg" alt="背景" className="absolute inset-0 w-full h-full object-cover opacity-70" />
+			<img src={BG_BY_FACTION[faction] || BG_DEFAULT} alt="背景" className="absolute inset-0 w-full h-full object-cover opacity-70" />
 			<div className="absolute inset-0 bg-black/50" />
 			<div className="relative z-10 h-full flex flex-col items-center justify-center">
 			  <img src="/logo.png" alt="Logo" className="h-14 mb-2 drop-shadow-lg" />
@@ -183,7 +190,7 @@
 			  )}
 			</div>
 
-			{/* 導覽按鈕 */}
+			{/* 導覽 */}
 			<div className="mt-6 flex justify-between">
 			  <button
 				disabled={step===0}
@@ -193,39 +200,346 @@
 				上一步
 			  </button>
 
-			{step<2 ? (
-			  <button
-				onClick={()=> setStep(s=> Math.min(2, s+1))}
-				className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-900/30"
-			  >
-				下一步
-			  </button>
-			) : (
-			  <button
-				onClick={finish}
-				disabled={left<0}
-				className={`px-5 py-2.5 rounded-xl ${left<0? "bg-slate-700 cursor-not-allowed":"bg-emerald-600 hover:bg-emerald-500"} shadow-lg`}
-			  >
-				進入場景
-			  </button>
-			)}
+			  {step<2 ? (
+				<button
+				  onClick={()=> setStep(s=> Math.min(2, s+1))}
+				  className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-900/30"
+				>
+				  下一步
+				</button>
+			  ) : (
+				<button
+				  onClick={finish}
+				  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 shadow-lg"
+				>
+				  完成創角 → 進入主線
+				</button>
+			  )}
 			</div>
 		  </div>
 		</div>
 	  );
 	}
 
-	/* ========= 頁面組裝：開場 → 創角 → 修煉 ========= */
+/* ========= ③ 主線劇情（依門派分支，從 JSON 載入） ========= */
+const STORY_KEY = "xiuxian-story";
+const BG_DEFAULT = "/bg/bg-clouds.jpg";
+const BG_BY_FACTION = {
+  "正派": "/bg/sect-righteous.jpg",
+  "邪修": "/bg/sect-evil.jpg",
+  "散修": "/bg/sect-rogue.jpg",
+};
+
+async function loadStoryJSON(faction){
+  const map = {
+    "正派": "/data/story/righteous.json",
+    "邪修": "/data/story/evil.json",
+    "散修": "/data/story/rogue.json",
+  };
+  const url = map[faction] || map["散修"];
+  const res = await fetch(url, { cache: "no-store" });
+  if(!res.ok) throw new Error("讀取劇情腳本失敗");
+  return res.json(); // { meta, scenes: [ {bg,text[],choices?} ] }
+}
+
+function Story({ profile, onFinish }){
+  const faction = profile?.faction || "散修";
+  const [script, setScript] = useState(null); // { meta, scenes }
+  const [idx, setIdx] = useState(0);
+  const [flags, setFlags] = useState({});
+
+  // 載入 JSON + 續看
+  useEffect(() => {
+    let mounted = true;
+    (async ()=>{
+      try{
+        const data = await loadStoryJSON(faction);
+        if (!mounted) return;
+        setScript(data);
+
+        // 續看進度
+        try{
+          const raw = localStorage.getItem(STORY_KEY);
+          if (raw) {
+            const saved = JSON.parse(raw);
+            if (saved?.faction === faction && Number.isInteger(saved.idx)) {
+              setIdx(saved.idx);
+              setFlags(saved.flags || {});
+            }
+          }
+        }catch{}
+      }catch(e){
+        console.error(e);
+        // Fallback：若讀檔失敗，給一個簡短替代
+        setScript({
+          meta: { title: "主線·序章", version: "fallback" },
+          scenes: [
+            { bg: BG_BY_FACTION[faction] || BG_DEFAULT, text: ["（無法載入劇本，使用預設序章）", "你立於山門之前，風起雲湧。"] },
+            { bg: BG_DEFAULT, text: ["前路漫漫，你決意踏入修行之途。"] }
+          ]
+        });
+      }
+    })();
+    return ()=> { mounted = false; };
+  }, [faction]);
+
+  if (!script) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-950 text-slate-200">
+        劇情載入中…
+      </div>
+    );
+  }
+
+  const scenes = script.scenes || [];
+  const node = scenes[idx] || scenes[scenes.length-1] || {};
+  const bg = node.bg || BG_BY_FACTION[faction] || BG_DEFAULT;
+
+  const saveProgress = (nextIdx, nextFlags=flags)=>{
+    try { localStorage.setItem(STORY_KEY, JSON.stringify({ faction, idx: nextIdx, flags: nextFlags })); } catch {}
+  };
+
+  const next = ()=>{
+    const nextIdx = idx + 1;
+    if (nextIdx >= scenes.length) {
+      try { localStorage.removeItem(STORY_KEY); } catch {}
+      try { localStorage.setItem("xiuxian-story-flags", JSON.stringify({ faction, ...flags })); } catch {}
+      onFinish();
+      return;
+    }
+    setIdx(nextIdx);
+    saveProgress(nextIdx);
+  };
+
+  const choose = (c)=>{
+    const nf = { ...flags, ...(c.flag || {}) };
+    setFlags(nf);
+    const nextIdx = idx + 1;
+    setIdx(nextIdx);
+    saveProgress(nextIdx, nf);
+  };
+
+  return (
+    <div className="min-h-screen relative text-slate-100">
+      {/* 背景 */}
+      <img src={bg} alt="劇情背景" className="absolute inset-0 w-full h-full object-cover opacity-70" onError={(e)=>{ e.currentTarget.style.display="none"; }} />
+      <div className="absolute inset-0 bg-black/55" />
+
+      {/* 內容 */}
+      <div className="relative z-10 max-w-3xl mx-auto px-4 py-10">
+        <header className="flex items-center gap-3 mb-4">
+          <img src="/logo.png" alt="Logo" className="h-10 drop-shadow" onError={(e)=> (e.currentTarget.style.display="none")} />
+          <div>
+            <h2 className="text-2xl font-bold">{script.meta?.title || `主線 · 序章（${faction}）`}</h2>
+            <div className="text-slate-300 text-sm">道號：{profile?.name || "無名散修"}</div>
+          </div>
+        </header>
+
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+          <div className="space-y-3 leading-relaxed">
+            {(node.text || []).map((line, i)=> (
+              <p key={i} className="text-slate-200">{line}</p>
+            ))}
+          </div>
+
+          <div className="mt-5 flex flex-wrap gap-2 justify-end">
+            {Array.isArray(node.choices) && node.choices.length > 0 ? (
+              node.choices.map((c, i)=> (
+                <button key={i} onClick={()=> choose(c)} className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500">
+                  {c.text}
+                </button>
+              ))
+            ) : (
+              <button onClick={next} className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500">
+                繼續
+              </button>
+            )}
+          </div>
+
+          <div className="mt-3 text-right">
+            <button
+              onClick={()=> { try{ localStorage.removeItem(STORY_KEY); }catch{} onFinish(); }}
+              className="text-xs text-slate-400 hover:text-slate-200 underline"
+            >
+              跳過序章，直接修煉
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+	function Story({ profile, onFinish }){
+	  const faction = profile?.faction || "散修";
+	  const script = STORY[faction] || STORY["散修"];
+	  const [idx, setIdx] = useState(0);
+	  const [flags, setFlags] = useState({});
+
+	  // 續看（如果有未完成劇情）
+	  useEffect(()=>{
+		try{
+		  const raw = localStorage.getItem(STORY_KEY);
+		  if (!raw) return;
+		  const saved = JSON.parse(raw);
+		  if (saved?.faction === faction && Number.isInteger(saved.idx)) {
+			setIdx(saved.idx);
+			setFlags(saved.flags || {});
+		  }
+		}catch{}
+	  // eslint-disable-next-line react-hooks/exhaustive-deps
+	  }, []);
+
+	  const node = script[idx] || script[script.length-1];
+	  const bg = node.bg || BG_BY_FACTION[faction] || BG_DEFAULT;
+
+	  const saveProgress = (nextIdx, nextFlags=flags)=>{
+		try { localStorage.setItem(STORY_KEY, JSON.stringify({ faction, idx: nextIdx, flags: nextFlags })); } catch {}
+	  };
+
+	  const next = ()=>{
+		const nextIdx = idx + 1;
+		if (nextIdx >= script.length) {
+		  // 完成
+		  try { localStorage.removeItem(STORY_KEY); } catch {}
+		  // 也把 flags 存一下，之後數值系統可以讀（你要用就接）
+		  try { localStorage.setItem("xiuxian-story-flags", JSON.stringify({ faction, ...flags })); } catch {}
+		  onFinish(); return;
+		}
+		setIdx(nextIdx);
+		saveProgress(nextIdx);
+	  };
+
+	  const choose = (c)=>{
+		const nf = { ...flags, ...(c.flag || {}) };
+		setFlags(nf);
+		const nextIdx = idx + 1;
+		setIdx(nextIdx);
+		saveProgress(nextIdx, nf);
+	  };
+
+	  return (
+		<div className="min-h-screen relative text-slate-100">
+		  {/* 背景 */}
+		  <img src={bg} alt="劇情背景" className="absolute inset-0 w-full h-full object-cover opacity-70" onError={(e)=>{ e.currentTarget.style.display="none"; }} />
+		  <div className="absolute inset-0 bg-black/55" />
+
+		  {/* 內容 */}
+		  <div className="relative z-10 max-w-3xl mx-auto px-4 py-10">
+			<header className="flex items-center gap-3 mb-4">
+			  <img src="/logo.png" alt="Logo" className="h-10 drop-shadow" onError={(e)=> (e.currentTarget.style.display="none")} />
+			  <div>
+				<h2 className="text-2xl font-bold">主線 · 序章（{faction}）</h2>
+				<div className="text-slate-300 text-sm">道號：{profile?.name || "無名散修"}</div>
+			  </div>
+			</header>
+
+			<div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+			  <div className="space-y-3 leading-relaxed">
+				{(node.text || []).map((line, i)=> (
+				  <p key={i} className="text-slate-200">{line}</p>
+				))}
+			  </div>
+
+			  {/* 選項 / 下一步 */}
+			  <div className="mt-5 flex flex-wrap gap-2 justify-end">
+				{Array.isArray(node.choices) && node.choices.length > 0 ? (
+				  node.choices.map((c, i)=> (
+					<button key={i} onClick={()=> choose(c)} className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500">
+					  {c.text}
+					</button>
+				  ))
+				) : (
+				  <button onClick={next} className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500">
+					繼續
+				  </button>
+				)}
+			  </div>
+
+			  {/* 跳過主線（開發用，可保留以防卡關） */}
+			  <div className="mt-3 text-right">
+				<button
+				  onClick={()=> { try{ localStorage.removeItem(STORY_KEY); }catch{} onFinish(); }}
+				  className="text-xs text-slate-400 hover:text-slate-200 underline"
+				>
+				  跳過序章，直接修煉
+				</button>
+			  </div>
+			</div>
+		  </div>
+		</div>
+	  );
+	}
+
+	/* ========= ④ 頁面組裝：持久化流程（封面 → 創角 → 主線 → 遊戲） ========= */
 	export default function XiuxianPage(){
-	  const [phase, setPhase] = useState("landing"); // "landing" | "creator" | "game"
+	  const [phase, setPhase] = useState(null); // null | 'landing' | 'creator' | 'story' | 'game'
 	  const [player, setPlayer] = useState(null);
+
+	  // 首次決定進入哪一階段
+	  useEffect(() => {
+		try {
+		  // 有遊戲存檔 → 直接進遊戲
+		  const save = localStorage.getItem(SAVE_KEY);
+		  if (save) { setPhase("game"); return; }
+
+		  // 有創角資料 → 檢查是否有尚未完成的劇情，預設進主線
+		  const profileRaw = localStorage.getItem(PROFILE_KEY);
+		  if (profileRaw) {
+			const p = JSON.parse(profileRaw);
+			setPlayer(p);
+			setPhase("story");
+			return;
+		  }
+
+		  // 只有按過「進入修仙世界」→ 進創角
+		  const entered = localStorage.getItem(ENTERED_KEY);
+		  setPhase(entered === "1" ? "creator" : "landing");
+		} catch {
+		  setPhase("landing");
+		}
+	  }, []);
+
+	  // 尚未決定時顯示 loading，避免閃爍
+	  if (phase === null) {
+		return (
+		  <div className="min-h-screen flex items-center justify-center bg-slate-950 text-slate-200">
+			載入中…
+		  </div>
+		);
+	  }
 
 	  if (phase === "game") return <AppInner initialPlayer={player} />;
 
+	  if (phase === "story") {
+		return (
+		  <Story
+			profile={player}
+			onFinish={()=> setPhase("game")}
+		  />
+		);
+	  }
+
 	  if (phase === "creator") {
-		return <Creator onDone={(payload)=> { setPlayer(payload); setPhase("game"); }} />;
+		return (
+		  <Creator
+			onDone={(payload)=> {
+			  try { localStorage.setItem(PROFILE_KEY, JSON.stringify(payload)); } catch {}
+			  setPlayer(payload);
+			  setPhase("story"); // 創角完成 → 進入主線
+			}}
+		  />
+		);
 	  }
 
 	  // landing
-	  return <Landing onEnter={()=> setPhase("creator")} />;
+	  return (
+		<Landing
+		  onEnter={() => {
+			try { localStorage.setItem(ENTERED_KEY, "1"); } catch {}
+			setPhase("creator");
+		  }}
+		/>
+	  );
 	}
