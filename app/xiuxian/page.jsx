@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import AppInner from "./AppInner";
 
 /* ========= 常量 ========= */
@@ -17,7 +17,7 @@ const BG_BY_FACTION = {
   "散修": "/bg/sect-rogue.jpg",
 };
 
-// 9 張門派專屬場景圖（請放 public/bg/scene-*.jpg）
+// 門派專屬場景（你要準備這 9 張圖放在 public/bg/）
 const SECT_SCENE_BG = {
   // 正派
   tianjian: "/bg/scene-tianjian.jpg",
@@ -33,11 +33,11 @@ const SECT_SCENE_BG = {
   shusheng: "/bg/scene-shusheng.jpg",
 };
 
-// 各派系的場景 fallback（如果找不到指定門派圖）
+// 若沒準備到 sect 專圖，使用這些派系級 fallback
 const SECT_SCENE_FALLBACK = {
-  "正派": "/bg/scene-righteous.jpg",
-  "邪修": "/bg/scene-evil.jpg",
-  "散修": "/bg/scene-rogue.jpg",
+  "正派": "/bg/sect-righteous.jpg",
+  "邪修": "/bg/sect-evil.jpg",
+  "散修": "/bg/sect-rogue.jpg",
 };
 
 // 隨機名
@@ -136,12 +136,13 @@ function Creator({ onDone }){
   const left = CAP - sumAttrs(attrs);
 
   const setA = (k, v)=>{
-    v = clamp(+v||0, 0, 20);
+    v = Math.max(0, Math.min(20, +v||0));
     const next = { ...attrs, [k]: v };
     if (sumAttrs(next) <= CAP) setAttrs(next);
   };
 
   const finish = ()=>{
+    // 把門派資訊和「門派加成表」一併存入 profile，Hub/AppInner 都能直接用
     const payload = {
       name: (name||"").trim() || "無名散修",
       faction: type,
@@ -149,9 +150,9 @@ function Creator({ onDone }){
       sectName: sect?.name || null,
       sectBonuses: sect?.bonuses || {},
       attrs,
-      applyBonusAfter: cfg?.rules?.applyBonusAfterAllocate === true,
-      // ✅ 門派專屬場景圖（含 fallback）
+      // 門派場景背景（含 fallback）
       sectSceneBg: SECT_SCENE_BG[sect?.key] || SECT_SCENE_FALLBACK[type] || BG_BY_FACTION[type] || BG_DEFAULT,
+      applyBonusAfter: cfg?.rules?.applyBonusAfterAllocate === true
     };
     try { localStorage.setItem(PROFILE_KEY, JSON.stringify(payload)); } catch {}
     onDone(payload);
@@ -159,9 +160,9 @@ function Creator({ onDone }){
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 text-slate-100">
-      {/* 頂部 Banner（派系背景） */}
+      {/* 頂部 Banner */}
       <div className="relative h-48 w-full overflow-hidden">
-        <img src={BG_BY_FACTION[type] || BG_DEFAULT} alt="背景" className="absolute inset-0 w-full h-full object-cover opacity-70" />
+        <img src={( { "正派": "/bg/sect-righteous.jpg", "邪修": "/bg/sect-evil.jpg", "散修": "/bg/sect-rogue.jpg" }[type] ) || "/bg/bg-clouds.jpg"} alt="背景" className="absolute inset-0 w-full h-full object-cover opacity-70" />
         <div className="absolute inset-0 bg-black/50" />
         <div className="relative z-10 h-full flex flex-col items-center justify-center">
           <img src="/logo.png" alt="Logo" className="h-14 mb-2 drop-shadow-lg" onError={(e)=> (e.currentTarget.style.display="none")} />
@@ -210,23 +211,6 @@ function Creator({ onDone }){
                 ))}
               </div>
 
-              {/* 門派場景預覽 */}
-              <div className="relative h-40 rounded-2xl overflow-hidden border border-white/10 mb-3">
-                <img
-                  src={ SECT_SCENE_BG[sectKey] || SECT_SCENE_FALLBACK[type] || BG_BY_FACTION[type] || BG_DEFAULT }
-                  alt="門派場景預覽"
-                  className="absolute inset-0 w-full h-full object-cover"
-                  onError={(e)=>{ 
-                    e.currentTarget.onerror = null; 
-                    e.currentTarget.src = SECT_SCENE_FALLBACK[type] || BG_BY_FACTION[type] || BG_DEFAULT; 
-                  }}
-                />
-                <div className="absolute inset-0 bg-black/35" />
-                <div className="relative z-10 p-3 text-sm text-slate-200">
-                  起始場景：{sect?.startScene || "—"}
-                </div>
-              </div>
-
               {/* 門派清單 */}
               <div className="grid sm:grid-cols-2 gap-3">
                 {sectList.map(s=> (
@@ -270,7 +254,11 @@ function Creator({ onDone }){
                     <div className="text-slate-200">{k}</div>
                     <input
                       type="range" min={0} max={20} value={attrs[k]||0}
-                      onChange={(e)=> setA(k, +e.target.value)}
+                      onChange={(e)=> {
+                        const v = +e.target.value;
+                        const next = { ...attrs, [k]: v };
+                        if (Object.values(next).reduce((a,b)=>a+(+b||0),0) <= CAP) setAttrs(next);
+                      }}
                       className="w-full accent-indigo-500"
                     />
                     <div className="w-10 text-right tabular-nums">{attrs[k]||0}</div>
@@ -309,7 +297,7 @@ function Creator({ onDone }){
               className={`px-5 py-2.5 rounded-xl ${left===0? "bg-emerald-600 hover:bg-emerald-500":"bg-slate-700 cursor-not-allowed"}`}
               title={left===0? "":"請把點數分配完畢"}
             >
-              完成創角 → 進入主線
+              完成創角 → 進入門派
             </button>
           )}
         </div>
@@ -382,9 +370,7 @@ function Story({ profile, onFinish }){
 
   const scenes = script.scenes || [];
   const node = scenes[idx] || scenes[scenes.length-1] || {};
-  // ✅ 主線背景優先用門派場景，再退派系、再退預設
-  const sectBg = profile?.sectSceneBg;
-  const bg = node.bg || sectBg || BG_BY_FACTION[faction] || BG_DEFAULT;
+  const bg = node.bg || BG_BY_FACTION[faction] || BG_DEFAULT;
 
   const saveProgress = (nextIdx, nextFlags=flags)=>{
     try { localStorage.setItem(STORY_KEY, JSON.stringify({ faction, idx: nextIdx, flags: nextFlags })); } catch {}
@@ -395,7 +381,7 @@ function Story({ profile, onFinish }){
     if (nextIdx >= scenes.length) {
       try { localStorage.removeItem(STORY_KEY); } catch {}
       try { localStorage.setItem("xiuxian-story-flags", JSON.stringify({ faction, ...flags })); } catch {}
-      onFinish();
+      onFinish(); // ← 劇情跑完 → 進門派 Hub（不是直接進打坐）
       return;
     }
     setIdx(nextIdx);
@@ -452,7 +438,7 @@ function Story({ profile, onFinish }){
               onClick={()=> { try{ localStorage.removeItem(STORY_KEY); }catch{} onFinish(); }}
               className="text-xs text-slate-400 hover:text-slate-200 underline"
             >
-              跳過序章，直接修煉
+              跳過序章，前往門派
             </button>
           </div>
         </div>
@@ -461,30 +447,116 @@ function Story({ profile, onFinish }){
   );
 }
 
-/* ========= ④ 頁面組裝：持久化流程（封面 → 創角 → 主線 → 遊戲） ========= */
+/* ========= ④ 門派主場景 Hub ========= */
+function Hub({ profile, onEnterCultivate }){
+  const faction = profile?.faction || "散修";
+  const sectKey = profile?.sectKey;
+  const sectName = profile?.sectName || "門派";
+  const bg = profile?.sectSceneBg || SECT_SCENE_BG[sectKey] || SECT_SCENE_FALLBACK[faction] || BG_BY_FACTION[faction] || BG_DEFAULT;
+
+  const [tab, setTab] = useState("sect"); // sect | quests | explore | demon | market
+
+  return (
+    <div className="min-h-screen relative text-slate-100">
+      {/* 背景 */}
+      <img src={bg} alt="門派場景" className="absolute inset-0 w-full h-full object-cover opacity-70" />
+      <div className="absolute inset-0 bg-black/50" />
+
+      <div className="relative z-10 max-w-5xl mx-auto px-4 py-6">
+        {/* 頂部欄 */}
+        <div className="flex items-center gap-3 mb-4">
+          <img src="/logo.png" alt="Logo" className="h-10 drop-shadow" onError={(e)=> (e.currentTarget.style.display="none")} />
+          <div className="flex-1">
+            <div className="text-xs text-slate-300">{faction} · {sectName}</div>
+            <h2 className="text-2xl font-bold tracking-wide">門派大殿</h2>
+          </div>
+
+          {/* 主要功能：閉關修煉（打開 AppInner 覆蓋層） */}
+          <button
+            onClick={onEnterCultivate}
+            className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-900/30"
+          >
+            閉關修煉
+          </button>
+        </div>
+
+        {/* 導覽按鈕 */}
+        <div className="flex flex-wrap gap-2 mb-4">
+          {[
+            ["sect","門派"],
+            ["quests","任務"],
+            ["explore","探索"],
+            ["demon","斬妖"],
+            ["market","坊市"]
+          ].map(([key,label])=> (
+            <button
+              key={key}
+              onClick={()=> setTab(key)}
+              className={`px-3 py-1.5 rounded-xl border ${tab===key? "border-indigo-400 bg-indigo-500/15":"border-white/10 hover:border-white/30 hover:bg-white/5"}`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* 內容卡片 */}
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-5 min-h-[320px]">
+          {tab==="sect" && (
+            <div className="space-y-3">
+              <div className="text-slate-300">掌門：「{profile?.name || "小道友"}，修途漫漫，請於門中磨礪心性。」</div>
+              <div className="text-sm text-slate-400">可從上方切換至 <b>任務 / 探索 / 斬妖 / 坊市</b>；或點右上角進入 <b>閉關修煉</b> 系統。</div>
+            </div>
+          )}
+          {tab==="quests" && (
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold">門派任務（雛型）</h3>
+              <p className="text-slate-300">之後會接入事件模組，顯示可接任務清單與章節。</p>
+              <ul className="list-disc pl-5 text-slate-300 text-sm">
+                <li>外門巡山 · 清剿山匪（推介境界：煉氣）</li>
+                <li>護送道童 · 藥谷採靈芝（推介境界：築基）</li>
+              </ul>
+            </div>
+          )}
+          {tab==="explore" && (
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold">門外探索（雛型）</h3>
+              <p className="text-slate-300">隨機遭遇：機緣／秘境／奇人／劫匪。之後用事件池實現。</p>
+            </div>
+          )}
+          {tab==="demon" && (
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold">斬妖除魔（雛型）</h3>
+              <p className="text-slate-300">之後接戰鬥/擲骰，或觸發事件鏈。</p>
+            </div>
+          )}
+          {tab==="market" && (
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold">坊市（雛型）</h3>
+              <p className="text-slate-300">法器、丹藥、功法將在此購買（可與 AppInner 的資源互通）。</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ========= ⑤ 頁面組裝：封面 → 創角 → 主線 → 門派Hub →（覆蓋層）修煉系統 ========= */
 export default function XiuxianPage(){
-  const [phase, setPhase] = useState(null); // null | 'landing' | 'creator' | 'story' | 'game'
+  const [phase, setPhase] = useState(null); // null | 'landing' | 'creator' | 'story' | 'hub'
   const [player, setPlayer] = useState(null);
+  const [showCultivate, setShowCultivate] = useState(false); // 覆蓋層：AppInner
 
   // 首次決定進入哪一階段
   useEffect(() => {
     try {
-      // 有遊戲存檔 → 直接進遊戲
+      // 有遊戲存檔也改為進「門派 Hub」，修煉系統改成從 Hub 進入
       const save = localStorage.getItem(SAVE_KEY);
-      if (save) { setPhase("game"); return; }
-
-      // 有創角資料 → 進主線
-      const profileRaw = localStorage.getItem(PROFILE_KEY);
-      if (profileRaw) {
-        const p = JSON.parse(profileRaw);
-        setPlayer(p);
-        setPhase("story");
-        return;
+      const profRaw = localStorage.getItem(PROFILE_KEY);
+      if (profRaw) {
+        setPlayer(JSON.parse(profRaw));
       }
-
-      // 只有按過「進入修仙世界」→ 進創角
-      const entered = localStorage.getItem(ENTERED_KEY);
-      setPhase(entered === "1" ? "creator" : "landing");
+      setPhase(save || profRaw ? "hub" : (localStorage.getItem(ENTERED_KEY)==="1" ? "creator" : "landing"));
     } catch {
       setPhase("landing");
     }
@@ -498,14 +570,39 @@ export default function XiuxianPage(){
     );
   }
 
-  if (phase === "game") return <AppInner initialPlayer={player} />;
+  if (phase === "hub") {
+    const prof = player || (()=> { try{ return JSON.parse(localStorage.getItem(PROFILE_KEY)||"null"); }catch{return null;} })();
+    return (
+      <>
+        <Hub
+          profile={prof}
+          onEnterCultivate={()=> setShowCultivate(true)}
+        />
+
+        {/* 修煉系統覆蓋層（AppInner 全螢幕） */}
+        {showCultivate && (
+          <div className="fixed inset-0 z-50 bg-black">
+            <div className="absolute top-3 left-3">
+              <button
+                onClick={()=> setShowCultivate(false)}
+                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-100 border border-white/10"
+              >
+                ← 返回門派
+              </button>
+            </div>
+            <AppInner initialPlayer={prof} />
+          </div>
+        )}
+      </>
+    );
+  }
 
   if (phase === "story") {
     const prof = player || (()=> { try{ return JSON.parse(localStorage.getItem(PROFILE_KEY)||"null"); }catch{return null;} })();
     return (
       <Story
         profile={prof}
-        onFinish={()=> setPhase("game")}
+        onFinish={()=> setPhase("hub")} // 劇情完 → 門派 Hub（不是直接進打坐）
       />
     );
   }
