@@ -273,27 +273,36 @@ useEffect(() => {
 const realm = REALMS[s.realmIndex] ?? REALMS[REALMS.length - 1];
 
 // 統一用 safeSkills 保護，避免 undefined
+/* 加成（唯一一份） */
 const safeSkills = {
   tuna:    Number(s?.skills?.tuna ?? 0),
   wuxing:  Number(s?.skills?.wuxing ?? 0),
   jiutian: Number(s?.skills?.jiutian ?? 0),
 };
 
+const realm = REALMS[s.realmIndex] ?? REALMS[REALMS.length - 1];
+
 const skillAutoBonus =
-  safeSkills.tuna    * SKILLS.tuna.autoPct +
-  safeSkills.wuxing  * SKILLS.wuxing.autoPct +
-  safeSkills.jiutian * SKILLS.jiutian.autoPct;
-  const artAutoBonus   = s.artifacts.zijinhu ? ARTIFACTS.zijinhu.autoPct : 0;
-  const artClickBonus  = s.artifacts.qingxiao ? ARTIFACTS.qingxiao.clickPct : 0;
-  const artBreakBonus  = s.artifacts.zhenpan ? ARTIFACTS.zhenpan.brPct : 0;
-  const talentAutoBonus  = s.talent.auto  * 0.10;
-  const talentClickBonus = s.talent.click * 0.10;
+  safeSkills.tuna   * SKILLS.tuna.autoPct +
+  safeSkills.wuxing * SKILLS.wuxing.autoPct +
+  safeSkills.jiutian* SKILLS.jiutian.autoPct;
 
-  const totalAutoMultiplier  = (1 + skillAutoBonus + artAutoBonus + talentAutoBonus) * realm.multiplier;
-  const totalClickMultiplier = (1 + artClickBonus  + talentClickBonus) * realm.multiplier;
+const artAutoBonus  = s?.artifacts?.zijinhu  ? ARTIFACTS.zijinhu.autoPct   : 0;
+const artClickBonus = s?.artifacts?.qingxiao ? ARTIFACTS.qingxiao.clickPct : 0;
+const artBreakBonus = s?.artifacts?.zhenpan  ? ARTIFACTS.zhenpan.brPct     : 0;
 
-  const autoPerSec = BASE_AUTO_PER_SEC * totalAutoMultiplier;
-  const clickGain  = BASE_CLICK_GAIN * totalClickMultiplier;
+const talentAutoBonus  = (Number(s?.talent?.auto)  || 0) * 0.10;
+const talentClickBonus = (Number(s?.talent?.click) || 0) * 0.10;
+
+const totalAutoMultiplier  =
+  (1 + skillAutoBonus + artAutoBonus + talentAutoBonus) * (realm?.multiplier ?? 1);
+
+const totalClickMultiplier =
+  (1 + artClickBonus + talentClickBonus) * (realm?.multiplier ?? 1);
+
+const autoPerSec = BASE_AUTO_PER_SEC * totalAutoMultiplier;
+const clickGain  = BASE_CLICK_GAIN   * totalClickMultiplier;
+
 
   /* 每秒自動產出 + 壽元遞減 */
   useEffect(() => {
