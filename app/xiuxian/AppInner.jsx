@@ -195,6 +195,25 @@ export default function AppInner() {
       return next;
     });
   }, []);
+// 讀檔 + 遷移補丁（放在 autosave 之前）
+useEffect(() => {
+  const saved = loadSaveSafely();
+  if (!saved) return;
+  setS(prev => {
+    let next = { ...prev, ...saved };
+
+    // --- 遷移補丁：確保 skills 一定是「物件」 ---
+    if (typeof next.skills !== 'object' || next.skills === null) {
+      const n = Number(next.skills) || 0;         // 舊版可能整個是數字
+      next.skills = { tuna: n, wuxing: 0, jiutian: 0 };
+    } else {
+      next.skills.tuna    = Number(next.skills.tuna ?? 0);
+      next.skills.wuxing  = Number(next.skills.wuxing ?? 0);
+      next.skills.jiutian = Number(next.skills.jiutian ?? 0);
+    }
+    return next;
+  });
+}, []);
 
   /* 單一自動存檔 */
   useEffect(() => { writeSave(s); }, [s]);
