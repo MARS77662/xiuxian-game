@@ -96,14 +96,23 @@
 	  const autoPerSec = BASE_AUTO_PER_SEC * totalAutoMultiplier;
 	  const clickGain = BASE_CLICK_GAIN * totalClickMultiplier;
 
-	  // 自動產出
-	  useEffect(() => {
-		  setS(p => ({ ...p, lastTick: Date.now() }));
-		}, []);
-		tickRef.current && clearInterval(tickRef.current);
-		tickRef.current = setInterval(() => setS((p) => ({ ...p, qi: p.qi + autoPerSec })), 1000);
-		return () => tickRef.current && clearInterval(tickRef.current);
-	  }, [autoPerSec]);
+	  // 自動產出（autoPerSec 改變時重開 interval）
+	useEffect(() => {
+	  if (tickRef.current) {
+		clearInterval(tickRef.current);
+	  }
+
+	  tickRef.current = setInterval(() => {
+		setS(p => ({ ...p, qi: p.qi + autoPerSec }));
+	  }, 1000);
+
+	  return () => {
+		if (tickRef.current) {
+		  clearInterval(tickRef.current);
+		}
+	  };
+	}, [autoPerSec]);
+
 
 	  // 動作
 	  const cultivate = () => setS((p) => ({ ...p, qi: p.qi + clickGain }));
