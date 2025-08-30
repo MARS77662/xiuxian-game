@@ -269,9 +269,6 @@ useEffect(() => {
   /* 單一自動存檔 */
   useEffect(() => { writeSave(s); }, [s]);
 
-/* 加成 */
-const realm = REALMS[s.realmIndex] ?? REALMS[REALMS.length - 1];
-
 // 統一用 safeSkills 保護，避免 undefined
 /* 加成（唯一一份） */
 const safeSkills = {
