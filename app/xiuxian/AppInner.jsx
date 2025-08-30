@@ -1,21 +1,49 @@
-	// app/xiuxian/AppInner.jsx
 	"use client";
 
-	import React, { useEffect, useMemo, useRef, useState } from "react";
-	import { REALMS } from "@/data/realms";
-	import { SKILLS } from "@/data/skills";
-	import { BACKGROUNDS } from "@/data/backgrounds";
+	import { useEffect, useRef, useState, useMemo } from "react";
 
-	/* ---------- 常量 ---------- */
+	/* ---------- 常量（你可依需求微調） ---------- */
 	const SAVE_KEY = "xiuxian-save-v1";
-	const BASE_AUTO_PER_SEC = 10000;
-	const BASE_CLICK_GAIN = 5000;
-	const QI_TO_STONE = 200;
+	const BASE_AUTO_PER_SEC = 10000;   // 每秒自動靈力（會再乘上各種加成）
+	const BASE_CLICK_GAIN   = 5000;    // 每次點擊靈力
+	const QI_TO_STONE       = 200;     // 多少靈力可煉 1 枚靈石
 
+	/* ---------- 基礎資料（可替換成你自己的完整表） ---------- */
+	const REALMS = [
+	  { key: "lianti",  name: "煉體",   multiplier: 0.8,  costQi: 50,     baseChance: 0.95 },
+	  { key: "lianqi",  name: "練氣",   multiplier: 1.0,  costQi: 100,    baseChance: 0.90 },
+	  { key: "zhujii",  name: "築基",   multiplier: 2.0,  costQi: 1000,   baseChance: 0.85 },
+	  { key: "jindan",  name: "金丹",   multiplier: 5.0,  costQi: 12000,  baseChance: 0.75 },
+	  { key: "yuanying",name: "元嬰",   multiplier: 10.0, costQi: 60000,  baseChance: 0.65 },
+	  // 進入渡劫由 DujieModal 特別處理（不走 baseChance ）
+	  { key: "dujie",   name: "渡劫",   multiplier: 16.0, costQi: 200000, baseChance: null },
+	  { key: "zhenxian",name: "真仙",   multiplier: 28.0, costQi: 650000, baseChance: 0.55 },
+	  { key: "daluo",   name: "大羅",   multiplier: 48.0, costQi: 2500000,baseChance: 0.45 },
+	];
+
+	const SKILLS = {
+	  tuna:   { name: "吐納術",    desc: "自動產出 +2% /Lv", baseCost: 20,  growth: 1.25, autoPct: 0.02 },
+	  wuxing: { name: "五行訣",    desc: "自動產出 +5% /Lv", baseCost: 80,  growth: 1.30, autoPct: 0.05 },
+	  jiutian:{ name: "九天玄功",  desc: "自動產出 +10%/Lv", baseCost: 260, growth: 1.35, autoPct: 0.10 },
+	};
+
+	const BACKGROUNDS = {
+	  _default: "/bg/default.jpg",
+	  lianti: "/bg/lianti.jpg",
+	  lianqi: "/bg/lianqi.jpg",
+	  zhujii: "/bg/zhujii.jpg",
+	  jindan: "/bg/jindan.jpg",
+	  yuanying: "/bg/yuanying.jpg",
+	  dujie: "/bg/dujie.jpg",
+	  zhenxian: "/bg/zhenxian.jpg",
+	  daluo: "/bg/daluo.jpg",
+	};
+
+	/* ---------- 法寶 ---------- */
 	const ARTIFACTS = {
-	  qingxiao: { key: "qingxiao", name: "青霄劍", desc: "點擊效率 +25%", clickPct: 0.25, autoPct: 0, brPct: 0, cost: 500, unlockRealmIndex: 2 },
-	  zijinhu:  { key: "zijinhu",  name: "紫金葫", desc: "自動產出 +15%", clickPct: 0, autoPct: 0.15, brPct: 0, cost: 1000, unlockRealmIndex: 3 },
-	  zhenpan:  { key: "zhenpan",  name: "鎮仙陣盤", desc: "突破成功 +8%", clickPct: 0, autoPct: 0, brPct: 0.08, cost: 2000, unlockRealmIndex: 4 },
+	  qingxiao: { key: "qingxiao", name: "青霄劍",   desc: "點擊效率 +25%",   clickPct: 0.25, autoPct: 0,    brPct: 0,    cost: 500,  unlockRealmIndex: 2 },
+	  zijinhu:  { key: "zijinhu",  name: "紫金葫",   desc: "自動產出 +15%",   clickPct: 0,    autoPct: 0.15, brPct: 0,    cost: 1000, unlockRealmIndex: 3 },
+	  zhenpan:  { key: "zhenpan",  name: "鎮仙陣盤", desc: "突破成功 +8%",    clickPct: 0,    autoPct: 0,    brPct: 0.08, cost: 2000, unlockRealmIndex: 4 },
 	};
 
 	/* ---------- 工具 ---------- */
@@ -43,7 +71,7 @@
 	  lastTick: 0,
 	});
 
-	/* ============================ 主元件（無 early return） ============================ */
+	/* ============================ 主元件 ============================ */
 	export default function AppInner() {
 	  const [s, setS] = useState(defaultState);
 	  const [msg, setMsg] = useState("");
@@ -313,19 +341,6 @@
 			<Leaderboard s={s} />
 		  </section>
 
-		  <section className="max-w-6xl mx-auto mt-6 grid md:grid-cols-2 gap-6">
-			<Card title="存檔 / 匯入">
-			  <div className="flex flex-wrap gap-2">
-				<button onClick={exportSave} className="px-4 py-2 rounded-lg bg-sky-700 hover:bg-sky-600">匯出到剪貼簿</button>
-				<button onClick={hardReset} className="px-4 py-2 rounded-lg bg-rose-800 hover:bg-rose-700">重置存檔</button>
-			  </div>
-			  <div className="mt-3">
-				<textarea value={importText} onChange={(e)=>setImportText(e.target.value)} placeholder="貼上匯出的 Base64 存檔字串…" className="w-full h-24 rounded-lg bg-black/40 border border-slate-700 p-2 text-sm" />
-				<button onClick={importSave} className="mt-2 px-4 py-2 rounded-lg bg-amber-700 hover:bg-amber-600">匯入存檔</button>
-			  </div>
-			</Card>
-		  </section>
-
 		  <section className="max-w-6xl mx-auto mt-6">
 			<DevTools setS={setS} setMsg={setMsg} />
 		  </section>
@@ -432,97 +447,93 @@
 	}
 
 	function MeditationHeroImg({ realmKey }) {
-  const stageKey = useMemo(() => {
-    if (realmKey === 'daluo') return 'daluo';
-    if (realmKey === 'dujie') return 'dujie';
-    const immortalSet = new Set(['zhenxian','tianxian','xuanxian','jinxian','taiyi']);
-    if (immortalSet.has(realmKey)) return 'zhenxian';
-    return realmKey;
-  }, [realmKey]);
+	  const stageKey = useMemo(() => {
+		if (realmKey === 'daluo') return 'daluo';
+		if (realmKey === 'dujie') return 'dujie';
+		const immortalSet = new Set(['zhenxian','tianxian','xuanxian','jinxian','taiyi']);
+		if (immortalSet.has(realmKey)) return 'zhenxian';
+		return realmKey;
+	  }, [realmKey]);
 
-  const bg = BACKGROUNDS[stageKey] || BACKGROUNDS[realmKey] || BACKGROUNDS._default;
+	  const bg = BACKGROUNDS[stageKey] || BACKGROUNDS[realmKey] || BACKGROUNDS._default;
 
-  return (
-    <div className="relative max-w-6xl mx-auto mt-6 overflow-hidden rounded-2xl border border-white/10 bg-[#0f172a]">
-      {/* 背景 */}
-      <img
-        src={bg}
-        alt="背景"
-        className="absolute inset-0 w-full h-full object-cover opacity-60 z-0 select-none pointer-events-none"
-      />
+	  return (
+		<div className="relative max-w-6xl mx-auto mt-6 overflow-hidden rounded-2xl border border-white/10 bg-[#0f172a]">
+		  {/* 背景 */}
+		  <img
+			src={bg}
+			alt="背景"
+			className="absolute inset-0 w-full h-full object-cover opacity-60 z-0 select-none pointer-events-none"
+		  />
 
-      {/* 打坐角色 */}
-      <div className="relative z-30 flex justify-center py-12">
-        <img
-          src="/meditate.png"
-          alt="打坐修煉"
-          className="w-64 sm:w-80 md:w-[420px] drop-shadow-xl animate-float-slow select-none pointer-events-none"
-        />
-		
-	  {/* 文字區塊 */}
-	  <div className="ml-0 md:ml-10 text-center md:text-left max-w-[520px]">
-		<h3 className="text-2xl md:text-3xl font-semibold leading-tight">入定·吐納</h3>
-		<p className="text-slate-300 mt-1 leading-relaxed">
-		  隨呼吸起伏，靈氣自丹田匯聚——點擊修煉或嘗試突破吧。
-		</p>
-	  </div>
-	</div>
+		  {/* 打坐角色 + 文案 */}
+		  <div className="relative z-30 flex justify-center py-12">
+			<img
+			  src="/meditate.png"
+			  alt="打坐修煉"
+			  className="w-64 sm:w-80 md:w-[420px] drop-shadow-xl animate-float-slow select-none pointer-events-none"
+			/>
+			<div className="ml-0 md:ml-10 text-center md:text-left max-w-[520px]">
+			  <h3 className="text-2xl md:text-3xl font-semibold leading-tight">入定·吐納</h3>
+			  <p className="text-slate-300 mt-1 leading-relaxed">
+				隨呼吸起伏，靈氣自丹田匯聚——點擊修煉或嘗試突破吧。
+			  </p>
+			</div>
+		  </div>
 
-      {/* 光暈效果 */}
-      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none">
-        <div className="aura w-44 h-44 rounded-full"/>
-        <div className="aura w-64 h-64 rounded-full delay-300"/>
-        <div className="aura w-80 h-80 rounded-full delay-700"/>
-      </div>
+		  {/* 光暈效果 */}
+		  <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none">
+			<div className="aura w-44 h-44 rounded-full"/>
+			<div className="aura w-64 h-64 rounded-full delay-300"/>
+			<div className="aura w-80 h-80 rounded-full delay-700"/>
+		  </div>
 
-      {/* 星光特效 */}
-      <div className="absolute inset-0 z-10 pointer-events-none">
-        {Array.from({length: 81}).map((_,i)=> (
-          <span
-            key={i}
-            style={{"--a": `${(i/18)*360}deg`, "--r": `${120 + (i%6)*18}px`}}
-            className="spark"
-          />
-        ))}
-      </div>
+		  {/* 星光特效 */}
+		  <div className="absolute inset-0 z-10 pointer-events-none">
+			{Array.from({length: 81}).map((_,i)=> (
+			  <span
+				key={i}
+				style={{"--a": `${(i/18)*360}deg`, "--r": `${120 + (i%6)*18}px`}}
+				className="spark"
+			  />
+			))}
+		  </div>
 
+		  {/* CSS 動畫 */}
+		  <style>{`
+			@keyframes aura { 0%{ transform: scale(0.6); opacity: .35 } 70%{ opacity:.08 } 100%{ transform: scale(1.4); opacity: 0 } }
+			.aura{ position:absolute; left:-50%; top:-50%; transform:translate(50%,50%);
+				   background:radial-gradient(circle, rgba(168,85,247,.25),
+				   rgba(59,130,246,.12) 40%, transparent 70%);
+				   animation:aura 3.6s linear infinite; filter: blur(2px); }
+			.aura.delay-300{ animation-delay:.3s }
+			.aura.delay-700{ animation-delay:.7s }
 
-      {/* CSS 動畫 */}
-      <style>{`
-        @keyframes aura { 0%{ transform: scale(0.6); opacity: .35 } 70%{ opacity:.08 } 100%{ transform: scale(1.4); opacity: 0 } }
-        .aura{ position:absolute; left:-50%; top:-50%; transform:translate(50%,50%);
-               background:radial-gradient(circle, rgba(168,85,247,.25),
-               rgba(59,130,246,.12) 40%, transparent 70%);
-               animation:aura 3.6s linear infinite; filter: blur(2px); }
-        .aura.delay-300{ animation-delay:.3s }
-        .aura.delay-700{ animation-delay:.7s }
+			@keyframes spin { to { transform: rotate(360deg) } }
+			.vortex{ position:absolute; left:50%; top:50%;
+					 transform:translate(-50%,-50%);
+					 border-radius:9999px;
+					 background:conic-gradient(from 0deg,
+					   rgba(255,255,255,.0) 0deg,
+					   rgba(255,255,255,.55) 30deg,
+					   rgba(255,255,255,.0) 120deg,
+					   rgba(255,255,255,.0) 360deg);
+					 filter: blur(6px);
+					 animation: spin 18s linear infinite;
+					 mask-image: radial-gradient(circle at center, transparent 38%, black 60%); }
 
-        @keyframes spin { to { transform: rotate(360deg) } }
-        .vortex{ position:absolute; left:50%; top:50%;
-                 transform:translate(-50%,-50%);
-                 border-radius:9999px;
-                 background:conic-gradient(from 0deg,
-                   rgba(255,255,255,.0) 0deg,
-                   rgba(255,255,255,.55) 30deg,
-                   rgba(255,255,255,.0) 120deg,
-                   rgba(255,255,255,.0) 360deg);
-                 filter: blur(6px);
-                 animation: spin 18s linear infinite;
-                 mask-image: radial-gradient(circle at center, transparent 38%, black 60%); }
+			@keyframes orbit { to { transform: rotate(var(--a)) translateX(var(--r)) rotate(calc(-1*var(--a))) } }
+			@keyframes twinkle { 0%,100%{ opacity:.2 } 50%{ opacity:1 } }
+			.spark{ position:absolute; left:50%; top:50%; width:3px; height:3px; background:#fff; border-radius:9999px;
+					transform-origin: -var(--r) 0;
+					animation: orbit 6s linear infinite, twinkle 3.2s ease-in-out infinite; }
 
-        @keyframes orbit { to { transform: rotate(var(--a)) translateX(var(--r)) rotate(calc(-1*var(--a))) } }
-        @keyframes twinkle { 0%,100%{ opacity:.2 } 50%{ opacity:1 } }
-        .spark{ position:absolute; left:50%; top:50%; width:3px; height:3px; background:#fff; border-radius:9999px;
-                transform-origin: -var(--r) 0;
-                animation: orbit 6s linear infinite, twinkle 3.2s ease-in-out infinite; }
-
-        @keyframes float-slow { 0%,100%{ transform: translateY(0) } 50%{ transform: translateY(-12px) } }
-        .animate-float-slow{ animation: float-slow 4s ease-in-out infinite; }
-      `}</style>
-    </div>
-  );
-}
-
+			@keyframes float-slow { 0%,100%{ transform: translateY(0) } 50%{ transform: translateY(-12px) } }
+			.animate-float-slow{ animation: float-slow 4s ease-in-out infinite; }
+		  `}</style>
+		</div>
+	  );
+	}
 
 	function DujieModal({ state, setState, artBreakBonus, onFinish }){
 	  const { open, useDaoHeart, running, logs, finished, nextName, costQi } = state;
@@ -585,7 +596,7 @@
 				return (
 				  <div key={i} className={`h-16 rounded-xl border flex items-center justify-center text-lg font-semibold
 					${row ? (row.pass ? 'bg-emerald-600/30 border-emerald-400/40 text-emerald-200' : 'bg-rose-600/30 border-rose-400/40 text-rose-200')
-						: 'bg-slate-800/60 border-slate-600/50 text-slate-300'}
+					  : 'bg-slate-800/60 border-slate-600/50 text-slate-300'}
 					${isActive ? 'ring-2 ring-indigo-400 animate-pulse' : ''}`}>
 					{row ? (row.pass ? '✓' : '✗') : (isActive ? '⚡' : i+1)}
 				  </div>
@@ -608,8 +619,8 @@
 	  return (
 		<Card title="開發者工具（內部測試）">
 		  <div className="grid grid-cols-3 gap-2 text-sm">
-			<button onClick={() => { setS(p => ({ ...p, stones: p.stones + 1000000 })); setMsg("測試加值：靈石 +10,000"); }} className="py-2 rounded-xl bg-slate-800 hover:bg-slate-700">+10,000 靈石</button>
-			<button onClick={() => { setS(p => ({ ...p, qi: p.qi + 10000000 })); setMsg("測試加值：靈力 +100,000"); }} className="py-2 rounded-xl bg-slate-800 hover:bg-slate-700">+100,000 靈力</button>
+			<button onClick={() => { setS(p => ({ ...p, stones: p.stones + 10000 })); setMsg("測試加值：靈石 +10,000"); }} className="py-2 rounded-xl bg-slate-800 hover:bg-slate-700">+10,000 靈石</button>
+			<button onClick={() => { setS(p => ({ ...p, qi: p.qi + 100000 })); setMsg("測試加值：靈力 +100,000"); }} className="py-2 rounded-xl bg-slate-800 hover:bg-slate-700">+100,000 靈力</button>
 			<button onClick={() => { setS(p => ({ ...p, daoHeart: p.daoHeart + 5 })); setMsg("測試加值：道心 +5"); }} className="py-2 rounded-xl bg-slate-800 hover:bg-slate-700">+5 道心</button>
 		  </div>
 		  <div className="text-xs text-slate-400 mt-2">（僅本機測試使用，之後會移除）</div>
