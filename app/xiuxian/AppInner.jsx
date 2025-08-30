@@ -608,8 +608,8 @@
 	  return (
 		<Card title="開發者工具（內部測試）">
 		  <div className="grid grid-cols-3 gap-2 text-sm">
-			<button onClick={() => { setS(p => ({ ...p, stones: p.stones + 10000 })); setMsg("測試加值：靈石 +10,000"); }} className="py-2 rounded-xl bg-slate-800 hover:bg-slate-700">+10,000 靈石</button>
-			<button onClick={() => { setS(p => ({ ...p, qi: p.qi + 100000 })); setMsg("測試加值：靈力 +100,000"); }} className="py-2 rounded-xl bg-slate-800 hover:bg-slate-700">+100,000 靈力</button>
+			<button onClick={() => { setS(p => ({ ...p, stones: p.stones + 1000000 })); setMsg("測試加值：靈石 +10,000"); }} className="py-2 rounded-xl bg-slate-800 hover:bg-slate-700">+10,000 靈石</button>
+			<button onClick={() => { setS(p => ({ ...p, qi: p.qi + 10000000 })); setMsg("測試加值：靈力 +100,000"); }} className="py-2 rounded-xl bg-slate-800 hover:bg-slate-700">+100,000 靈力</button>
 			<button onClick={() => { setS(p => ({ ...p, daoHeart: p.daoHeart + 5 })); setMsg("測試加值：道心 +5"); }} className="py-2 rounded-xl bg-slate-800 hover:bg-slate-700">+5 道心</button>
 		  </div>
 		  <div className="text-xs text-slate-400 mt-2">（僅本機測試使用，之後會移除）</div>
