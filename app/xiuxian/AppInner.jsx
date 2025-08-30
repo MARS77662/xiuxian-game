@@ -499,25 +499,29 @@ export default function AppInner() {
         </Card>
 
         <Card title="功法強化">
-          <ul className="space-y-2 text-sm">
-            {["tuna","wuxing","jiutian"].map((k)=> {
-              const def = SKILLS[k], lv = Number(s.skills[k] || 0);
-              const cost = costOfSkill(def.baseCost, def.growth, lv);
-              const can = (Number(s.stones) || 0) >= cost;
-              return (
-                <li key={k} className="flex items-center justify-between gap-3 p-2 rounded-lg bg-black/30 border border-slate-700/40">
-                  <div>
-                    <div className="font-medium">{def.name} <span className="opacity-70">Lv.{lv}</span></div>
-                    <div className="text-slate-400 text-xs">{def.desc}</div>
-                  </div>
-                  <button onClick={()=>buySkill(k)} disabled={!can} className={`px-3 py-1.5 rounded-lg ${can? 'bg-sky-700 hover:bg-sky-600':'bg-slate-700 cursor-not-allowed'}`}>
-                    升級（{fmt(cost)} 石）
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        </Card>
+		  <ul className="space-y-2 text-sm">
+			{["tuna","wuxing","jiutian"].map((k)=> {
+			  const def  = SKILLS[k];
+			  const lv   = Number(safeSkills[k] ?? 0);          // ← 改這行（不要直接用 s.skills[k]）
+			  const cost = costOfSkill(def.baseCost, def.growth, lv);
+			  const can  = (Number(s?.stones) || 0) >= cost;
+
+			  return (
+				<li key={k} className="flex items-center justify-between gap-3 p-2 rounded-lg bg-black/30 border border-slate-700/40">
+				  <div>
+					<div className="font-medium">{def.name} <span className="opacity-70">Lv.{lv}</span></div>
+					<div className="text-slate-400 text-xs">{def.desc}</div>
+				  </div>
+				  <button onClick={()=>buySkill(k)} disabled={!can}
+						  className={`px-3 py-1.5 rounded-lg ${can? 'bg-sky-700 hover:bg-sky-600':'bg-slate-700 cursor-not-allowed'}`}>
+					升級（{fmt(cost)} 石）
+				  </button>
+				</li>
+			  );
+			})}
+		  </ul>
+		</Card>
+
 
         <Card title="法寶鋪（隨境界解鎖）">
           <ul className="space-y-2 text-sm">
