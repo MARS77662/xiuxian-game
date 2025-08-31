@@ -554,7 +554,9 @@ function Hub({ profile, onEnterCultivate }) {
       {/* 內容容器：手機不用大 padding，名片在文流內會自己把內容推開 */}
       <div className="relative z-10 max-w-5xl mx-auto px-4 py-6 pt-[200px] md:pt-28">
         {/* 名片：回到文流（不跟著畫面移動） */}
+		  <div className="mobile-userinfo">
         <UserInfo state={ui} />
+		  </div>
 
         {/* 頂部欄 */}
         <div className="flex items-center gap-3 mb-4">

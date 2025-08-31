@@ -66,4 +66,16 @@
     transform: none;     /* 清掉縮放效果 */
   }
 }
+/* 手機：把名片（不管內部用什麼 class）改成進文流 */
+@media (max-width: 768px){
+  .mobile-userinfo > * {
+    position: static !important;
+    inset: auto !important;
+    top: auto !important; right: auto !important; bottom: auto !important; left: auto !important;
+    transform: none !important;
+    width: 100% !important;
+    margin: 8px 0 12px !important;
+    z-index: auto !important;
+  }
+}
 
