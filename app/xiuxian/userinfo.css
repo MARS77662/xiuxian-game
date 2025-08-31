@@ -48,17 +48,23 @@
 	.ui-userinfo.realm-jindan  .ui-avatar{ border-color:#ffb14d; }
 	.ui-userinfo.realm-yuanying .ui-avatar{ border-color:#ff5bd1; }
 
-/* 手機：名片不跟著畫面移動，回到正常文流 */
-@media (max-width: 768px) {
+/* === mobile-first：手機預設進文流，不固定、不覆蓋 === */
+.ui-userinfo{
+  position: static !important;   /* 直接回文流 */
+  inset: auto !important;        /* 取消 top/left/right/bottom */
+  transform: none !important;
+  margin: 8px 0 12px !important; /* 和下方內容留距 */
+  width: 100% !important;        /* 讓卡片自然佔寬 */
+  z-index: auto !important;      /* 不壓住下面 */
+}
+/* >=768px 桌機才恢復左上浮動 */
+@media (min-width: 768px){
   .ui-userinfo{
-    position: relative !important;  /* 取消 absolute/fixed */
-    top: auto !important;
-    left: auto !important;
-    right: auto !important;
+    position: absolute !important;
+    top: 10px !important;
+    left: 10px !important;
     transform: none !important;
-    margin: 8px 0 12px;             /* 上下留點距離 */
-    width: 100%;                    /* 讓它自然佔滿容器寬 */
-    z-index: auto;                  /* 不壓住下面內容 */
+    width: auto !important;
+    z-index: 9999 !important;
   }
 }
-
