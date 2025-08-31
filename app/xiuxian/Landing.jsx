@@ -1,4 +1,3 @@
-// app/xiuxian/Landing.jsx
 "use client";
 
 import Image from "next/image";
@@ -14,6 +13,7 @@ function SwordStreakFX() {
       <div className="fx-streak" style={{ animationDelay: "0.7s" }} />
       <div className="fx-streak" style={{ animationDelay: "1s" }} />
 
+      {/* 內嵌 CSS，避免 tailwind 衝突 */}
       <style jsx global>{`
         .fx-streak {
           position: absolute;
@@ -62,7 +62,7 @@ function SwordStreakFX() {
 export default function Landing({ onEnter }) {
   return (
     <div className="min-h-screen relative text-slate-100">
-      {/* 背景（失敗 fallback） */}
+      {/* 背景（失敗就換雲海） */}
       <img
         src="/bg/landing.jpg"
         alt="背景"
@@ -71,29 +71,25 @@ export default function Landing({ onEnter }) {
         }}
         className="absolute inset-0 w-full h-full object-cover"
       />
+      {/* 暗色遮罩 */}
       <div className="absolute inset-0 bg-black/55 z-20" />
 
-      {/* 劍光在遮罩上面 */}
+      {/* 劍光在遮罩上層 */}
       <SwordStreakFX />
 
       {/* 內容 */}
       <div className="relative z-40 h-screen flex flex-col items-center justify-center px-6 text-center">
-        {/* ✅ Logo 外層掛動畫；也放大行動版 */}
-        <div className="logo-anim">
-          <Image
-            src="/logo.png"
-            alt="修仙啟程"
-            width={1640}  // 原圖比例 1640x664
-            height={664}
-            priority
-            className="
-              mb-6 h-auto
-              w-[clamp(420px,94vw,1100px)]  /* 手機更大、桌機上限更寬 */
-              drop-shadow-[0_10px_35px_rgba(0,0,0,.6)]
-            "
-          />
-        </div>
+        {/* Logo：手機可放大、桌機限制最大寬 */}
+        <Image
+          src="/logo.png"
+          alt="修仙啟程"
+          width={1640}
+          height={664}
+          priority
+          className="mb-5 h-auto w-[clamp(360px,92vw,1000px)] drop-shadow-[0_10px_35px_rgba(0,0,0,.6)]"
+        />
 
+        {/* 副標語 */}
         <div className="space-y-2">
           <p className="text-2xl md:text-3xl font-bold text-slate-100">
             佛非是我，憑何渡我
@@ -103,66 +99,30 @@ export default function Landing({ onEnter }) {
           </p>
         </div>
 
-		{/* ✨ 漂亮的遊戲進入按鈕（圖片版） ✨ */}
-		<Image
-		  src="/btn-enter.png"
-		  alt="進入修仙世界"
-		  width={360}      // 可以調整：建議 280~400
-		  height={120}
-		  priority
-		  className="mt-10 cursor-pointer hover:scale-105 transition-transform duration-300"
-		  onClick={onEnter}
-		/>
+        {/* 圖片按鈕（/public/btn-enter.png） */}
+        <div className="mt-8">
+          <Image
+            src="/btn-enter.png"
+            alt="進入修仙世界"
+            width={520}            // 依你的圖片比例調整
+            height={160}
+            priority
+            className="h-auto w-[min(80vw,520px)] cursor-pointer transition-transform duration-300 hover:scale-105"
+            onClick={onEnter}
+          />
+        </div>
 
-
-      {/* —— Logo 動效樣式 —— */}
-      <style jsx global>{`
-        /* 進場＋浮動＋光暈脈動（掛在 .logo-anim 外層容器） */
-        .logo-anim {
-          animation: logoEnter 900ms ease-out forwards,
-            logoFloat 6s ease-in-out infinite 1s,
-            logoGlow 2.4s ease-in-out infinite 1.2s;
-          transform-origin: center center;
-          will-change: transform, filter, opacity;
-        }
-        @keyframes logoEnter {
-          from {
-            opacity: 0;
-            transform: translateY(12px) scale(0.96);
-            filter: drop-shadow(0 0 0 rgba(0, 255, 220, 0));
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-            filter: drop-shadow(0 0 18px rgba(0, 255, 220, 0.25));
-          }
-        }
-        @keyframes logoFloat {
-          0%,
-          100% {
-            transform: translateY(0) scale(1) rotate(0.02deg);
-          }
-          50% {
-            transform: translateY(-6px) scale(1.01) rotate(0.02deg);
-          }
-        }
-        @keyframes logoGlow {
-          0%,
-          100% {
-            filter: drop-shadow(0 0 14px rgba(0, 255, 220, 0.22))
-              drop-shadow(0 0 28px rgba(0, 255, 220, 0.1));
-          }
-          50% {
-            filter: drop-shadow(0 0 24px rgba(0, 255, 220, 0.36))
-              drop-shadow(0 0 48px rgba(0, 255, 220, 0.16));
-          }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .logo-anim {
-            animation: none !important;
-          }
-        }
-      `}</style>
+        {/* 後備：若沒放圖片，仍能點擊（可保留也可刪） */}
+        <noscript>
+          <style>{`.fallback-enter{display:inline-block;margin-top:16px;}`}</style>
+        </noscript>
+        <button
+          onClick={onEnter}
+          className="fallback-enter mt-4 hidden rounded-2xl bg-emerald-600 px-6 py-3 text-lg shadow-xl shadow-emerald-900/30 hover:bg-emerald-500 sm:inline-block"
+        >
+          進入修仙世界
+        </button>
+      </div>
     </div>
   );
 }
