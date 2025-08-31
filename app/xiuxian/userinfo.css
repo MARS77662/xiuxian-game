@@ -48,16 +48,17 @@
 	.ui-userinfo.realm-jindan  .ui-avatar{ border-color:#ffb14d; }
 	.ui-userinfo.realm-yuanying .ui-avatar{ border-color:#ff5bd1; }
 
-/* 原本就有的樣式保留 */
-
-@media (max-width: 768px){
+/* 手機：名片不跟著畫面移動，回到正常文流 */
+@media (max-width: 768px) {
   .ui-userinfo{
-    position: fixed;       /* 手機改用固定在視窗右上角 */
-    top: 12px;
-    right: 12px;
-    left: auto;
-    transform: scale(.92);
-    transform-origin: top right;
-    z-index: 50;           /* 夠高就好，避免被卡片蓋住 */
+    position: relative !important;  /* 取消 absolute/fixed */
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    transform: none !important;
+    margin: 8px 0 12px;             /* 上下留點距離 */
+    width: 100%;                    /* 讓它自然佔滿容器寬 */
+    z-index: auto;                  /* 不壓住下面內容 */
   }
 }
+
