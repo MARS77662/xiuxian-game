@@ -543,9 +543,15 @@ function Hub({ profile, onEnterCultivate }){
       <img src={bg} alt="門派場景" className="absolute inset-0 w-full h-full object-cover opacity-70" />
       <div className="absolute inset-0 bg-black/50" />
 
-      <div className="relative z-10 max-w-5xl mx-auto px-4 py-6 pt-[144px] md:pt-28">
-        {/* 左上角玩家資訊 */}
-        <UserInfo state={ui} />
+      <div className="relative z-10 max-w-5xl mx-auto px-4 py-6 pt-[160px] md:pt-28">
+        {/* 左上角玩家資訊（手機固定右上，桌機恢復預設） */}
+		<div className="fixed top-3 right-3 z-50 md:static md:top-auto md:right-auto">
+		  <UserInfo state={ui} />
+		</div>
+
+		{/* 手機預留名片高度，避免被覆蓋 */}
+		<div className="h-[140px] md:hidden" />
+
 
         {/* 頂部欄 */}
         <div className="flex items-center gap-3 mb-4">
