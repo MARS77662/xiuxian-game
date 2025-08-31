@@ -23,32 +23,57 @@ html, body {
   100% { transform: translate(60vw,60vh) scale(1.1); opacity: 0; }
 }
 
-/* 劍光本體：一條帶發光的斜線 */
+/* ====== 飛劍劍光特效 ====== */
+:root{
+  --streak-width: 38vmax;   /* 劍光長度 */
+  --streak-height: 6px;     /* 劍光粗細 */
+  --streak-tilt: -12deg;    /* 飛行角度（負值=往左上） */
+  --streak-duration: 2.4s;  /* 飛行時間 */
+  --streak-blur: 8px;       /* 模糊量 */
+}
+
+/* 單道劍光（從右下往左上掃過畫面） */
 .sword-streak{
   position: absolute;
-  top: -10vh; left: -10vw;
-  width: 36vw; height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,.95), rgba(255,255,255,.2), transparent);
-  box-shadow: 0 0 24px 6px rgba(135,206,255,.55), 0 0 60px 10px rgba(120,180,255,.35) inset;
-  filter: drop-shadow(0 0 6px rgba(170,220,255,.9));
-  transform: rotate(-18deg);
+  left: -20vmax;             /* 從畫面外起飛 */
+  bottom: -6vmax;            /* 從畫面外起飛 */
+  width: var(--streak-width);
+  height: var(--streak-height);
+  transform: rotate(var(--streak-tilt));
   border-radius: 999px;
-  animation: streakFly 4.6s ease-in-out infinite;
-}
-.sword-streak.delay-700 { animation-delay: .7s; opacity:.85; filter: blur(0.4px) drop-shadow(0 0 4px rgba(170,220,255,.8)); }
-.sword-streak.delay-1000{ animation-delay: 1s; opacity:.6; filter: blur(0.6px) drop-shadow(0 0 3px rgba(170,220,255,.6)); }
 
-/* 火花小點 */
-.spark{
-  position: absolute;
-  top: -5vh; left: -5vw;
-  width: 3px; height: 3px; border-radius: 999px;
-  background: radial-gradient(circle, #fff 0%, #9fe3ff 50%, transparent 70%);
-  box-shadow: 0 0 8px 2px rgba(150,220,255,.75);
-  animation: sparkFloat 3.8s linear infinite;
+  /* 漸層 + 光暈 */
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0) 0%,
+    rgba(255,255,255,.85) 35%,
+    rgba(180,220,255,.95) 55%,
+    rgba(120,180,255,.65) 70%,
+    rgba(255,255,255,0) 100%
+  );
+  filter: blur(var(--streak-blur)) drop-shadow(0 0 12px rgba(120,180,255,.65));
+
+  /* 疊在遮罩上層 */
+  z-index: 10;
+  pointer-events: none;
+
+  animation: sword-sweep var(--streak-duration) linear infinite;
 }
 
-/* 有動暈會暈船的玩家：跟隨偏好自動停用 */
+/* 複數道延遲 */
+.delay-700  { animation-delay: .7s; }
+.delay-1000 { animation-delay: 1s;  }
+
+/* 飛行路徑：右下 → 左上 橫掃全螢幕 */
+@keyframes sword-sweep{
+  0%   { transform: translate3d(0,0,0) rotate(var(--streak-tilt)); opacity: .0; }
+  5%   { opacity: .85; }
+  50%  { opacity: 1; }
+  95%  { opacity: .0; }
+  100% { transform: translate3d(140vmax, -70vmax, 0) rotate(var(--streak-tilt)); opacity: 0; }
+}
+
+/* 尊重使用者的「降低動態」設定 */
 @media (prefers-reduced-motion: reduce){
-  .sword-streak, .spark{ animation: none !important; opacity: 0 !important; }
+  .sword-streak{ animation: none; opacity: 0; }
 }
+
