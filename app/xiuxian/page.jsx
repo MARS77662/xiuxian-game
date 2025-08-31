@@ -384,8 +384,6 @@ function Story({ profile, onFinish }){
   }
 
   const scenes = script.scenes || [];
-  theNode: {
-  }
   const node = scenes[idx] || scenes[scenes.length-1] || {};
   const bg = node.bg || BG_BY_FACTION[faction] || BG_DEFAULT;
 
@@ -606,7 +604,7 @@ function Hub({ profile, onEnterCultivate }) {
                   { key: "library", name: "藏經閣", desc: "以門派貢獻兌換心法、武學祕笈（限期制度）。", img: "/bg/room-library.jpg" },
                   { key: "hall",    name: "執事堂", desc: "接取門派任務，升外門/內門、領取獎勵。", img: "/bg/room-hall.jpg" },
                 ].map((r) => (
-                  <div key={r.key} className="relative rounded-2xl overflow-hidden group shadow-lg border border白/10">
+                  <div key={r.key} className="relative rounded-2xl overflow-hidden group shadow-lg border border-white/10">
                     <img src={r.img} alt={r.name} className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-90 transition" />
                     <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition" />
                     <div className="relative z-10 p-6 flex flex-col h-full justify-between">
@@ -616,7 +614,7 @@ function Hub({ profile, onEnterCultivate }) {
                       </div>
                       <button
                         onClick={() => alert(`進入 ${r.name}（尚未實作）`)}
-                        className="mt-4 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text白 self-start"
+                        className="mt-4 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white self-start"
                       >
                         進入
                       </button>
@@ -661,61 +659,83 @@ function Hub({ profile, onEnterCultivate }) {
 }
 
 /* ========= ⑥ 頁面組裝：封面 → 創角 → 主線 → 門派Hub →（覆蓋層）修煉系統 ========= */
-function XiuxianPage(){
-  const [phase, setPhase] = useState(null); // null | 'landing' | 'creator' | 'story' | 'hub'
+/* ========= ⑥ 頁面組裝：永遠先 Landing ========= */
+function XiuxianPage() {
+  // 初始永遠顯示 landing
+  const [phase, setPhase] = useState("landing"); // 'landing' | 'creator' | 'story' | 'hub'
   const [player, setPlayer] = useState(null);
-  const [showCultivate, setShowCultivate] = useState(false); // 覆蓋層：AppInner
+  const [showCultivate, setShowCultivate] = useState(false);
 
-  // ✅ 已創角 → 直接進 Hub；未創角 → 封面 → 創角 → 劇情
-  useEffect(() => {
+  // 按「進入修仙世界」後，才決定要去哪
+  const handleEnter = () => {
+    try { localStorage.setItem(ENTERED_KEY, "1"); } catch {}
+
     try {
-      const profRaw = localStorage.getItem(PROFILE_KEY);
-      if (profRaw) {
-        setPlayer(JSON.parse(profRaw));
-        setPhase("hub");
-        return;
+      const raw = localStorage.getItem(PROFILE_KEY);
+      if (raw) {
+        const prof = JSON.parse(raw);
+        setPlayer(prof);
+        setPhase("hub");       // 舊帳 → 直接進 Hub
+      } else {
+        setPhase("creator");   // 新帳 → 走創角
       }
-      const entered = localStorage.getItem(ENTERED_KEY) === "1";
-      setPhase(entered ? "creator" : "landing");
     } catch {
-      setPhase("landing");
+      setPhase("creator");
     }
-  }, []);
+  };
 
-  if (phase === null) {
+  if (phase === "landing") {
+    return <Landing onEnter={handleEnter} />;
+  }
+
+  if (phase === "creator") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-950 text-slate-200">
-        載入中…
-      </div>
+      <Creator
+        onDone={(payload) => {
+          try { localStorage.setItem(PROFILE_KEY, JSON.stringify(payload)); } catch {}
+          setPlayer(payload);
+          setPhase("story");   // 創角完成 → 進序章
+        }}
+      />
     );
   }
 
-  if (phase === "hub") {
-    const prof = player || (()=> { try{ return JSON.parse(localStorage.getItem(PROFILE_KEY)||"null"); }catch{return null;} })();
-    return (
-      <>
-        <Hub profile={prof} onEnterCultivate={()=> setShowCultivate(true)} />
+  if (phase === "story") {
+    const prof = player || (() => {
+      try { return JSON.parse(localStorage.getItem(PROFILE_KEY) || "null"); }
+      catch { return null; }
+    })();
+    return <Story profile={prof} onFinish={() => setPhase("hub")} />;
+  }
 
-        {/* 修煉系統覆蓋層（AppInner 全螢幕） */}
-        {showCultivate && (
-          <div className="fixed inset-0 z-50 bg-black overflow-y-auto">
-            <div className="sticky top-3 left-3 z-10 p-3">
-              <button
-                onClick={()=> setShowCultivate(false)}
-                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-100 border border-white/10"
-              >
-                ← 返回門派
-              </button>
-            </div>
+  // phase === 'hub'
+  const prof = player || (() => {
+    try { return JSON.parse(localStorage.getItem(PROFILE_KEY) || "null"); }
+    catch { return null; }
+  })();
 
-            <div className="min-h-[100svh]">
-              <AppInner initialPlayer={prof} />
-            </div>
+  return (
+    <>
+      <Hub profile={prof} onEnterCultivate={() => setShowCultivate(true)} />
+      {showCultivate && (
+        <div className="fixed inset-0 z-50 bg-black overflow-y-auto">
+          <div className="sticky top-3 left-3 z-10 p-3">
+            <button
+              onClick={() => setShowCultivate(false)}
+              className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-100 border border-white/10"
+            >
+              ← 返回門派
+            </button>
           </div>
-        )}
-      </>
-    );
-  }
+          <div className="min-h-[100svh]">
+            <AppInner initialPlayer={prof} />
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 
   if (phase === "story") {
     const prof = player || (()=> { try{ return JSON.parse(localStorage.getItem(PROFILE_KEY)||"null"); }catch{return null;} })();

@@ -78,16 +78,18 @@ export default function Landing({ onEnter }) {
 
       {/* 內容層 */}
       <div className="relative z-40 h-screen flex flex-col items-center justify-center px-6 text-center">
-		{/* Logo 當主標題（自適應大小） */}
-		<div className="w-40 sm:w-56 md:w-64 relative aspect-square mb-4">
-		  <Image
-			src="/logo.png"
-			alt="修仙啟程"
-			fill
-			priority
-			className="object-contain drop-shadow-[0_10px_35px_rgba(0,0,0,.6)]"
-		  />
-		</div>
+	{/* Logo：視窗自適應大小 */}
+	<div className="relative aspect-square mb-4 w-[clamp(200px,28vw,520px)]">
+	  <Image
+		src="/logo.png"
+		alt="修仙啟程"
+		fill
+		priority
+		sizes="(max-width: 640px) 60vw, (max-width: 1024px) 30vw, 28vw"
+		className="object-contain drop-shadow-[0_10px_35px_rgba(0,0,0,.6)]"
+	  />
+	</div>
+
 
 
         {/* 副標語 */}
