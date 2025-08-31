@@ -81,14 +81,18 @@ export default function Landing({ onEnter }) {
 	{/* Logo：視窗自適應大小 */}
 	<div className="relative aspect-square mb-4 w-[clamp(200px,28vw,520px)]">
 	  <Image
-		src="/logo.png"
-		alt="修仙啟程"
-		fill
-		priority
-		sizes="(max-width: 640px) 60vw, (max-width: 1024px) 30vw, 28vw"
-		className="object-contain drop-shadow-[0_10px_35px_rgba(0,0,0,.6)]"
-	  />
-	</div>
+  src="/logo.png"
+  alt="修仙啟程"
+  width={1640}      // 原圖寬
+  height={664}      // 原圖高
+  priority
+  className="
+    mb-4 h-auto
+    w-[clamp(320px,85vw,920px)]   /* 手機 85% 螢幕寬，最大 920px */
+    drop-shadow-[0_10px_35px_rgba(0,0,0,.6)]
+  "
+/>
+
 
 
 
