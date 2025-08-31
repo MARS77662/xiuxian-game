@@ -543,7 +543,7 @@ function Hub({ profile, onEnterCultivate }){
       <img src={bg} alt="門派場景" className="absolute inset-0 w-full h-full object-cover opacity-70" />
       <div className="absolute inset-0 bg-black/50" />
 
-      <div className="relative z-10 max-w-5xl mx-auto px-4 py-6 pt-28">
+      <div className="relative z-10 max-w-5xl mx-auto px-4 py-6 pt-[144px] md:pt-28">
         {/* 左上角玩家資訊 */}
         <UserInfo state={ui} />
 

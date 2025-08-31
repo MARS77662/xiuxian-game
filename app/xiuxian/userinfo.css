@@ -48,6 +48,16 @@
 	.ui-userinfo.realm-jindan  .ui-avatar{ border-color:#ffb14d; }
 	.ui-userinfo.realm-yuanying .ui-avatar{ border-color:#ff5bd1; }
 
-	@media (max-width: 768px){
-	  .ui-userinfo{ transform: scale(.92); transform-origin: top left; }
-	}
+/* 原本就有的樣式保留 */
+
+@media (max-width: 768px){
+  .ui-userinfo{
+    position: fixed;       /* 手機改用固定在視窗右上角 */
+    top: 12px;
+    right: 12px;
+    left: auto;
+    transform: scale(.92);
+    transform-origin: top right;
+    z-index: 50;           /* 夠高就好，避免被卡片蓋住 */
+  }
+}
