@@ -2,18 +2,17 @@
 
 import Image from "next/image";
 
+/* —— 飛劍光效 —— */
 function SwordStreakFX() {
   return (
     <div
       aria-hidden
       className="pointer-events-none absolute inset-0 overflow-hidden z-30"
     >
-      {/* 三道劍光 */}
       <div className="fx-streak" style={{ animationDelay: "0s" }} />
       <div className="fx-streak" style={{ animationDelay: "0.7s" }} />
       <div className="fx-streak" style={{ animationDelay: "1s" }} />
 
-      {/* 內嵌 CSS，保證載入 */}
       <style jsx global>{`
         .fx-streak {
           position: absolute;
@@ -39,15 +38,9 @@ function SwordStreakFX() {
             transform: translate3d(0, 0, 0) rotate(-12deg);
             opacity: 0;
           }
-          5% {
-            opacity: 0.95;
-          }
-          50% {
-            opacity: 1;
-          }
-          95% {
-            opacity: 0;
-          }
+          5% { opacity: 0.95; }
+          50% { opacity: 1; }
+          95% { opacity: 0; }
           100% {
             transform: translate3d(140vmax, -70vmax, 0) rotate(-12deg);
             opacity: 0;
@@ -58,45 +51,38 @@ function SwordStreakFX() {
   );
 }
 
+/* —— Landing —— */
 export default function Landing({ onEnter }) {
   return (
     <div className="min-h-screen relative text-slate-100">
-      {/* 背景圖（失敗就換雲海） */}
+      {/* 背景（失敗 fallback） */}
       <img
         src="/bg/landing.jpg"
-        onError={(e) => {
-          e.currentTarget.src = "/bg/bg-clouds.jpg";
-        }}
         alt="背景"
+        onError={(e) => { e.currentTarget.src = "/bg/bg-clouds.jpg"; }}
         className="absolute inset-0 w-full h-full object-cover"
       />
-      {/* 暗色遮罩 */}
       <div className="absolute inset-0 bg-black/55 z-20" />
 
-      {/* 劍光特效（在遮罩之上） */}
+      {/* 劍光在遮罩上面 */}
       <SwordStreakFX />
 
-      {/* 內容層 */}
+      {/* 內容 */}
       <div className="relative z-40 h-screen flex flex-col items-center justify-center px-6 text-center">
-	{/* Logo：視窗自適應大小 */}
-	<div className="relative aspect-square mb-4 w-[clamp(200px,28vw,520px)]">
-	  <Image
-  src="/logo.png"
-  alt="修仙啟程"
-  width={1640}      // 原圖寬
-  height={664}      // 原圖高
-  priority
-  className="
-    mb-4 h-auto
-    w-[clamp(320px,85vw,920px)]   /* 手機 85% 螢幕寬，最大 920px */
-    drop-shadow-[0_10px_35px_rgba(0,0,0,.6)]
-  "
-/>
+        {/* ✅ Logo 自適應：手機很大、桌機限最大寬 */}
+        <Image
+          src="/logo.png"
+          alt="修仙啟程"
+          width={1640}      // 原圖比例 1640x664
+          height={664}
+          priority
+          className="
+            mb-5 h-auto
+            w-[clamp(360px,92vw,1000px)]
+            drop-shadow-[0_10px_35px_rgba(0,0,0,.6)]
+          "
+        />
 
-
-
-
-        {/* 副標語 */}
         <div className="space-y-2">
           <p className="text-2xl md:text-3xl font-bold text-slate-100">
             佛非是我，凭何渡我。
@@ -106,7 +92,6 @@ export default function Landing({ onEnter }) {
           </p>
         </div>
 
-        {/* 進入按鈕 */}
         <button
           onClick={onEnter}
           className="mt-8 px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 shadow-xl shadow-emerald-900/30 text-lg"
@@ -116,3 +101,4 @@ export default function Landing({ onEnter }) {
       </div>
     </div>
   );
+}
