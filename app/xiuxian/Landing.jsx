@@ -77,9 +77,15 @@ export default function Landing({ onEnter }) {
 
       {/* 內容（z-40） */}
       <div className="relative z-40 h-screen flex flex-col items-center justify-center px-6 text-center">
-        <h1 className="text-4xl md:text-5xl font-extrabold tracking-wide mb-4">
-          修仙 · 啟程
-        </h1>
+        <Image
+  src="/logo.png"       // 你的 Logo 圖檔
+  alt="修仙啟程"
+  width={260}           // 可以調大一點，取代標題文字
+  height={260}
+  priority
+  className="mb-4 drop-shadow-[0_10px_35px_rgba(0,0,0,.6)]"
+/>
+
 
         <div className="space-y-2">
           <p className="text-2xl md:text-3xl font-bold text-slate-100">
