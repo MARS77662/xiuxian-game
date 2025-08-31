@@ -5,18 +5,18 @@ import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 
 import Landing from "./Landing";
-import UserInfo from "./UserInfo";                  // 你專案已有
-import EventCenter from "./components/EventCenter"; // 若為具名匯出，改為：import { EventCenter } from "./components/EventCenter";
+import UserInfo from "./UserInfo";
+import EventCenter from "./components/EventCenter";
 
 /* ========= 動態載入修煉系統（關閉 SSR，避免 hydration） ========= */
 const AppInner = dynamic(() => import("./AppInner"), { ssr: false });
 
 /* ========= 常量 ========= */
-const SAVE_KEY     = "xiuxian-save-v1";     // AppInner 自動存檔
-const PROFILE_KEY  = "xiuxian-profile";     // 創角檔
-const ENTERED_KEY  = "xiuxian-entered";     // 是否按過「進入修仙世界」
-const STORY_KEY    = "xiuxian-story";       // 劇情進度（未完成續看）
-const SAVE_EVENT   = "xiuxian:save";
+const SAVE_KEY = "xiuxian-save-v1";     // AppInner 自動存檔
+const PROFILE_KEY = "xiuxian-profile";  // 創角檔
+const ENTERED_KEY = "xiuxian-entered";  // 是否按過「進入修仙世界」
+const STORY_KEY = "xiuxian-story";      // 劇情進度（未完成續看）
+const SAVE_EVENT = "xiuxian:save";
 
 // 入口 / 門派 / 通用背景（請把對應圖片放入 public/bg/）
 const BG_DEFAULT = "/bg/bg-clouds.jpg";
@@ -30,15 +30,15 @@ const BG_BY_FACTION = {
 const SECT_SCENE_BG = {
   // 正派
   tianjian: "/bg/scene-tianjian.jpg",
-  danyang:  "/bg/scene-danyang.jpg",
-  fulu:     "/bg/scene-fulu.jpg",
+  danyang: "/bg/scene-danyang.jpg",
+  fulu: "/bg/scene-fulu.jpg",
   // 邪修
-  xuesha:   "/bg/scene-xuesha.jpg",
-  moxin:    "/bg/scene-moxin.jpg",
-  youming:  "/bg/scene-youming.jpg",
+  xuesha: "/bg/scene-xuesha.jpg",
+  moxin: "/bg/scene-moxin.jpg",
+  youming: "/bg/scene-youming.jpg",
   // 散修
-  shanxiu:  "/bg/scene-shanxiu.jpg",
-  youxia:   "/bg/scene-youxia.jpg",
+  shanxiu: "/bg/scene-shanxiu.jpg",
+  youxia: "/bg/scene-youxia.jpg",
   shusheng: "/bg/scene-shusheng.jpg",
 };
 
@@ -50,16 +50,21 @@ const SECT_SCENE_FALLBACK = {
 };
 
 // 隨機名
-const RANDOM_NAMES = ["蘇子夜","白無塵","北冥秋","南宮霜","顧長歌","雲清","洛玄一","陸沉舟"];
+const RANDOM_NAMES = ["蘇子夜", "白無塵", "北冥秋", "南宮霜", "顧長歌", "雲清", "洛玄一", "陸沉舟"];
 
 /* ========= 小元件 ========= */
-function Stepper({ step }){
+function Stepper({ step }) {
   const items = ["命名", "選門派", "屬性點數"];
   return (
     <ol className="flex items-center gap-3 text-sm mb-6">
-      {items.map((t,i)=> (
-        <li key={t} className={`px-3 py-1 rounded-full border ${i===step? "border-indigo-400 bg-indigo-500/10":"border-white/10 text-slate-400"}`}>
-          {i+1}. {t}
+      {items.map((t, i) => (
+        <li
+          key={t}
+          className={`px-3 py-1 rounded-full border ${
+            i === step ? "border-indigo-400 bg-indigo-500/10" : "border-white/10 text-slate-400"
+          }`}
+        >
+          {i + 1}. {t}
         </li>
       ))}
     </ol>
@@ -72,15 +77,15 @@ function Creator({ onDone }) {
   const [name, setName] = useState("蘇子夜");
 
   const [cfg, setCfg] = useState(null);
-  const [type, setType] = useState(null);     // 正派/邪修/散修
+  const [type, setType] = useState(null); // 正派/邪修/散修
   const [sectKey, setSectKey] = useState(null);
 
   const [attrs, setAttrs] = useState({});
-  const sumAttrs = (o)=> Object.values(o).reduce((a,b)=> a+(+b||0), 0);
+  const sumAttrs = (o) => Object.values(o).reduce((a, b) => a + (+b || 0), 0);
 
-  useEffect(()=>{
-    (async ()=>{
-      try{
+  useEffect(() => {
+    (async () => {
+      try {
         const res = await fetch("/data/factions.json", { cache: "no-store" });
         const data = await res.json();
         setCfg(data);
@@ -92,18 +97,23 @@ function Creator({ onDone }) {
         setSectKey(s0?.key || null);
 
         const init = {};
-        (data.attributes || ["體質","智力","才貌","家境"]).forEach(k => init[k] = 0);
+        (data.attributes || ["體質", "智力", "才貌", "家境"]).forEach((k) => (init[k] = 0));
         setAttrs(init);
-      }catch(e){
+      } catch (e) {
         console.error(e);
-        setCfg({ attributes:["體質","智力","才貌","家境"], startPoints:16, factions:{ "散修":[{key:"shanxiu",name:"山野苦修者",desc:"",bonuses:{}} ] } });
-        setType("散修"); setSectKey("shanxiu");
-        setAttrs({ 體質:0, 智力:0, 才貌:0, 家境:0 });
+        setCfg({
+          attributes: ["體質", "智力", "才貌", "家境"],
+          startPoints: 16,
+          factions: { "散修": [{ key: "shanxiu", name: "山野苦修者", desc: "", bonuses: {} }] },
+        });
+        setType("散修");
+        setSectKey("shanxiu");
+        setAttrs({ 體質: 0, 智力: 0, 才貌: 0, 家境: 0 });
       }
     })();
-  },[]);
+  }, []);
 
-  if(!cfg || !type){
+  if (!cfg || !type) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-950 text-slate-200">
         載入門派資料中…
@@ -112,23 +122,29 @@ function Creator({ onDone }) {
   }
 
   const types = Object.keys(cfg.factions || {});
-  const sectList = (cfg.factions[type] || []);
-  const sect = sectList.find(s=> s.key === sectKey) || sectList[0];
+  const sectList = cfg.factions[type] || [];
+  const sect = sectList.find((s) => s.key === sectKey) || sectList[0];
   const CAP = cfg.startPoints ?? 16;
   const left = CAP - sumAttrs(attrs);
 
-  const finish = ()=>{
+  const finish = () => {
     const payload = {
-      name: (name||"").trim() || "無名散修",
+      name: (name || "").trim() || "無名散修",
       faction: type,
       sectKey: sect?.key || null,
       sectName: sect?.name || null,
       sectBonuses: sect?.bonuses || {},
       attrs,
-      sectSceneBg: SECT_SCENE_BG[sect?.key] || SECT_SCENE_FALLBACK[type] || BG_BY_FACTION[type] || BG_DEFAULT,
-      applyBonusAfter: cfg?.rules?.applyBonusAfterAllocate === true
+      sectSceneBg:
+        SECT_SCENE_BG[sect?.key] ||
+        SECT_SCENE_FALLBACK[type] ||
+        BG_BY_FACTION[type] ||
+        BG_DEFAULT,
+      applyBonusAfter: cfg?.rules?.applyBonusAfterAllocate === true,
     };
-    try { localStorage.setItem(PROFILE_KEY, JSON.stringify(payload)); } catch {}
+    try {
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(payload));
+    } catch {}
     onDone(payload);
   };
 
@@ -137,13 +153,23 @@ function Creator({ onDone }) {
       {/* 頂部 Banner */}
       <div className="relative h-48 w-full overflow-hidden">
         <img
-          src={ SECT_SCENE_BG[sect?.key] || SECT_SCENE_FALLBACK[type] || BG_BY_FACTION[type] || BG_DEFAULT }
+          src={
+            SECT_SCENE_BG[sect?.key] ||
+            SECT_SCENE_FALLBACK[type] ||
+            BG_BY_FACTION[type] ||
+            BG_DEFAULT
+          }
           alt="背景"
           className="absolute inset-0 w-full h-full object-cover opacity-70"
         />
         <div className="absolute inset-0 bg-black/50" />
         <div className="relative z-10 h-full flex flex-col items-center justify-center">
-          <img src="/logo.png" alt="Logo" className="h-14 mb-2 drop-shadow-lg" onError={(e)=> (e.currentTarget.style.display="none")} />
+          <img
+            src="/logo.png"
+            alt="Logo"
+            className="h-14 mb-2 drop-shadow-lg"
+            onError={(e) => (e.currentTarget.style.display = "none")}
+          />
           <h2 className="text-3xl font-bold">角色建立</h2>
         </div>
       </div>
@@ -153,18 +179,20 @@ function Creator({ onDone }) {
 
         {/* 內容卡 */}
         <div className="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-5">
-          {step===0 && (
+          {step === 0 && (
             <>
               <div className="text-slate-300">請為你的角色取一個道號：</div>
               <div className="flex gap-2">
                 <input
                   value={name}
-                  onChange={(e)=> setName(e.target.value)}
+                  onChange={(e) => setName(e.target.value)}
                   placeholder="取個道號…"
                   className="flex-1 px-3 py-2 rounded-lg bg-black/30 border border-white/10 outline-none"
                 />
                 <button
-                  onClick={()=> setName(RANDOM_NAMES[Math.floor(Math.random()*RANDOM_NAMES.length)])}
+                  onClick={() =>
+                    setName(RANDOM_NAMES[Math.floor(Math.random() * RANDOM_NAMES.length)])
+                  }
                   className="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700"
                 >
                   隨機
@@ -173,17 +201,25 @@ function Creator({ onDone }) {
             </>
           )}
 
-          {step===1 && (
+          {step === 1 && (
             <>
               <div className="text-slate-300 mb-2">選擇門派：</div>
 
               {/* 類型 Tab */}
               <div className="flex gap-2 mb-3">
-                {types.map(t => (
+                {types.map((t) => (
                   <button
                     key={t}
-                    onClick={()=> { setType(t); const first = (cfg.factions[t]||[])[0]; setSectKey(first?.key||null); }}
-                    className={`px-3 py-1.5 rounded-xl border ${t===type? "border-indigo-400 bg-indigo-500/15":"border-white/10 hover:border-white/30 hover:bg-white/5"}`}
+                    onClick={() => {
+                      setType(t);
+                      const first = (cfg.factions[t] || [])[0];
+                      setSectKey(first?.key || null);
+                    }}
+                    className={`px-3 py-1.5 rounded-xl border ${
+                      t === type
+                        ? "border-indigo-400 bg-indigo-500/15"
+                        : "border-white/10 hover:border-white/30 hover:bg-white/5"
+                    }`}
                   >
                     {t}
                   </button>
@@ -215,7 +251,9 @@ function Creator({ onDone }) {
                           src={img}
                           alt={s.name}
                           className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition"
-                          onError={(e)=>{ e.currentTarget.style.display="none"; }}
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                          }}
                         />
                         <div className="absolute inset-0 bg-black/30" />
                         <div className="absolute bottom-2 left-3 right-3 text-lg font-semibold drop-shadow">
@@ -232,7 +270,10 @@ function Creator({ onDone }) {
                         {s.tags && (
                           <div className="mt-2 flex flex-wrap gap-1">
                             {s.tags.map((t) => (
-                              <span key={t} className="text-[11px] px-2 py-0.5 rounded-full bg-white/5 border border-white/10">
+                              <span
+                                key={t}
+                                className="text-[11px] px-2 py-0.5 rounded-full bg-white/5 border border-white/10"
+                              >
                                 {t}
                               </span>
                             ))}
@@ -241,7 +282,10 @@ function Creator({ onDone }) {
 
                         {s.bonuses && Object.keys(s.bonuses).length > 0 && (
                           <div className="mt-2 text-xs text-emerald-300">
-                            加成：{Object.entries(s.bonuses).map(([k,v])=> `${k}+${v}`).join("，")}
+                            加成：
+                            {Object.entries(s.bonuses)
+                              .map(([k, v]) => `${k}+${v}`)
+                              .join("，")}
                           </div>
                         )}
 
@@ -256,29 +300,39 @@ function Creator({ onDone }) {
             </>
           )}
 
-          {step===2 && (
+          {step === 2 && (
             <>
               <div className="flex items-center justify-between">
                 <div className="text-slate-300">分配屬性（總點數上限 {CAP}）</div>
-                <div className={`text-xs px-2 py-0.5 rounded ${left>=0? "bg-emerald-700/40 text-emerald-200":"bg-rose-700/40 text-rose-200"}`}>
+                <div
+                  className={`text-xs px-2 py-0.5 rounded ${
+                    left >= 0
+                      ? "bg-emerald-700/40 text-emerald-200"
+                      : "bg-rose-700/40 text-rose-200"
+                  }`}
+                >
                   剩餘：{left}
                 </div>
               </div>
 
               <div className="space-y-3">
-                {(cfg.attributes || ["體質","智力","才貌","家境"]).map((k)=> (
+                {(cfg.attributes || ["體質", "智力", "才貌", "家境"]).map((k) => (
                   <div key={k} className="grid grid-cols-[72px_1fr_auto] items-center gap-3">
                     <div className="text-slate-200">{k}</div>
                     <input
-                      type="range" min={0} max={20} value={attrs[k]||0}
-                      onChange={(e)=> {
+                      type="range"
+                      min={0}
+                      max={20}
+                      value={attrs[k] || 0}
+                      onChange={(e) => {
                         const v = +e.target.value;
                         const next = { ...attrs, [k]: v };
-                        if (Object.values(next).reduce((a,b)=>a+(+b||0),0) <= CAP) setAttrs(next);
+                        if (Object.values(next).reduce((a, b) => a + (+b || 0), 0) <= CAP)
+                          setAttrs(next);
                       }}
                       className="w-full accent-indigo-500"
                     />
-                    <div className="w-10 text-right tabular-nums">{attrs[k]||0}</div>
+                    <div className="w-10 text-right tabular-nums">{attrs[k] || 0}</div>
                   </div>
                 ))}
               </div>
@@ -293,16 +347,18 @@ function Creator({ onDone }) {
         {/* 導覽 */}
         <div className="mt-6 flex justify-between">
           <button
-            disabled={step===0}
-            onClick={()=> setStep(s=> Math.max(0, s-1))}
-            className={`px-4 py-2 rounded-xl ${step===0? "bg-slate-700 cursor-not-allowed":"bg-slate-800 hover:bg-slate-700"}`}
+            disabled={step === 0}
+            onClick={() => setStep((s) => Math.max(0, s - 1))}
+            className={`px-4 py-2 rounded-xl ${
+              step === 0 ? "bg-slate-700 cursor-not-allowed" : "bg-slate-800 hover:bg-slate-700"
+            }`}
           >
             上一步
           </button>
 
-          {step<2 ? (
+          {step < 2 ? (
             <button
-              onClick={()=> setStep(s=> Math.min(2, s+1))}
+              onClick={() => setStep((s) => Math.min(2, s + 1))}
               className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-900/30"
             >
               下一步
@@ -310,9 +366,11 @@ function Creator({ onDone }) {
           ) : (
             <button
               onClick={finish}
-              disabled={left!==0}
-              className={`px-5 py-2.5 rounded-xl ${left===0? "bg-emerald-600 hover:bg-emerald-500":"bg-slate-700 cursor-not-allowed"}`}
-              title={left===0? "":"請把點數分配完畢"}
+              disabled={left !== 0}
+              className={`px-5 py-2.5 rounded-xl ${
+                left === 0 ? "bg-emerald-600 hover:bg-emerald-500" : "bg-slate-700 cursor-not-allowed"
+              }`}
+              title={left === 0 ? "" : "請把點數分配完畢"}
             >
               完成創角 → 進入門派
             </button>
@@ -324,7 +382,7 @@ function Creator({ onDone }) {
 }
 
 /* ========= ③ 主線劇情 ========= */
-async function loadStoryJSON(faction){
+async function loadStoryJSON(faction) {
   const map = {
     "正派": "/data/story/righteous.json",
     "邪修": "/data/story/evil.json",
@@ -332,11 +390,11 @@ async function loadStoryJSON(faction){
   };
   const url = map[faction] || map["散修"];
   const res = await fetch(url, { cache: "no-store" });
-  if(!res.ok) throw new Error("讀取劇情腳本失敗");
+  if (!res.ok) throw new Error("讀取劇情腳本失敗");
   return res.json();
 }
 
-function Story({ profile, onFinish }){
+function Story({ profile, onFinish }) {
   const faction = profile?.faction || "散修";
   const [script, setScript] = useState(null);
   const [idx, setIdx] = useState(0);
@@ -344,14 +402,14 @@ function Story({ profile, onFinish }){
 
   useEffect(() => {
     let mounted = true;
-    (async ()=>{
-      try{
+    (async () => {
+      try {
         const data = await loadStoryJSON(faction);
         if (!mounted) return;
         setScript(data);
 
         // 續看
-        try{
+        try {
           const raw = localStorage.getItem(STORY_KEY);
           if (raw) {
             const saved = JSON.parse(raw);
@@ -360,19 +418,21 @@ function Story({ profile, onFinish }){
               setFlags(saved.flags || {});
             }
           }
-        }catch{}
-      }catch(e){
+        } catch {}
+      } catch (e) {
         console.error(e);
         setScript({
           meta: { title: "主線·序章", version: "fallback" },
           scenes: [
             { bg: BG_BY_FACTION[faction] || BG_DEFAULT, text: ["（無法載入劇本，使用預設序章）", "你立於山門之前，風起雲湧。"] },
-            { bg: BG_DEFAULT, text: ["前路漫漫，你決意踏入修行之途。"] }
-          ]
+            { bg: BG_DEFAULT, text: ["前路漫漫，你決意踏入修行之途。"] },
+          ],
         });
       }
     })();
-    return ()=> { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [faction]);
 
   if (!script) {
@@ -384,18 +444,24 @@ function Story({ profile, onFinish }){
   }
 
   const scenes = script.scenes || [];
-  const node = scenes[idx] || scenes[scenes.length-1] || {};
+  const node = scenes[idx] || scenes[scenes.length - 1] || {};
   const bg = node.bg || BG_BY_FACTION[faction] || BG_DEFAULT;
 
-  const saveProgress = (nextIdx, nextFlags=flags)=>{
-    try { localStorage.setItem(STORY_KEY, JSON.stringify({ faction, idx: nextIdx, flags: nextFlags })); } catch {}
+  const saveProgress = (nextIdx, nextFlags = flags) => {
+    try {
+      localStorage.setItem(STORY_KEY, JSON.stringify({ faction, idx: nextIdx, flags: nextFlags }));
+    } catch {}
   };
 
-  const next = ()=>{
+  const next = () => {
     const nextIdx = idx + 1;
     if (nextIdx >= scenes.length) {
-      try { localStorage.removeItem(STORY_KEY); } catch {}
-      try { localStorage.setItem("xiuxian-story-flags", JSON.stringify({ faction, ...flags })); } catch {}
+      try {
+        localStorage.removeItem(STORY_KEY);
+      } catch {}
+      try {
+        localStorage.setItem("xiuxian-story-flags", JSON.stringify({ faction, ...flags }));
+      } catch {}
       onFinish(); // 劇情跑完 → 進門派 Hub
       return;
     }
@@ -403,7 +469,7 @@ function Story({ profile, onFinish }){
     saveProgress(nextIdx);
   };
 
-  const choose = (c)=>{
+  const choose = (c) => {
     const nf = { ...flags, ...(c.flag || {}) };
     setFlags(nf);
     const nextIdx = idx + 1;
@@ -413,12 +479,24 @@ function Story({ profile, onFinish }){
 
   return (
     <div className="min-h-screen relative text-slate-100">
-      <img src={bg} alt="劇情背景" className="absolute inset-0 w-full h-full object-cover opacity-70" onError={(e)=>{ e.currentTarget.style.display="none"; }} />
+      <img
+        src={bg}
+        alt="劇情背景"
+        className="absolute inset-0 w-full h-full object-cover opacity-70"
+        onError={(e) => {
+          e.currentTarget.style.display = "none";
+        }}
+      />
       <div className="absolute inset-0 bg-black/55" />
 
       <div className="relative z-10 max-w-3xl mx-auto px-4 py-10">
         <header className="flex items-center gap-3 mb-4">
-          <img src="/logo.png" alt="Logo" className="h-10 drop-shadow" onError={(e)=> (e.currentTarget.style.display="none")} />
+          <img
+            src="/logo.png"
+            alt="Logo"
+            className="h-10 drop-shadow"
+            onError={(e) => (e.currentTarget.style.display = "none")}
+          />
           <div>
             <h2 className="text-2xl font-bold">{script.meta?.title || `主線 · 序章（${faction}）`}</h2>
             <div className="text-slate-300 text-sm">道號：{profile?.name || "無名散修"}</div>
@@ -427,15 +505,21 @@ function Story({ profile, onFinish }){
 
         <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
           <div className="space-y-3 leading-relaxed">
-            {(node.text || []).map((line, i)=> (
-              <p key={i} className="text-slate-200">{line}</p>
+            {(node.text || []).map((line, i) => (
+              <p key={i} className="text-slate-200">
+                {line}
+              </p>
             ))}
           </div>
 
           <div className="mt-5 flex flex-wrap gap-2 justify-end">
             {Array.isArray(node.choices) && node.choices.length > 0 ? (
-              node.choices.map((c, i)=> (
-                <button key={i} onClick={()=> choose(c)} className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500">
+              node.choices.map((c, i) => (
+                <button
+                  key={i}
+                  onClick={() => choose(c)}
+                  className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500"
+                >
                   {c.text}
                 </button>
               ))
@@ -448,7 +532,12 @@ function Story({ profile, onFinish }){
 
           <div className="mt-3 text-right">
             <button
-              onClick={()=> { try{ localStorage.removeItem(STORY_KEY); }catch{} onFinish(); }}
+              onClick={() => {
+                try {
+                  localStorage.removeItem(STORY_KEY);
+                } catch {}
+                onFinish();
+              }}
               className="text-xs text-slate-400 hover:text-slate-200 underline"
             >
               跳過序章，前往門派
@@ -461,40 +550,42 @@ function Story({ profile, onFinish }){
 }
 
 /* ========= ④ 狀態聚合 → UserInfo（門派大廳左上角） ========= */
-function buildUserInfoState(profile){
+function buildUserInfoState(profile) {
   let save = null;
-  try { save = JSON.parse(localStorage.getItem(SAVE_KEY) || "null"); } catch {}
+  try {
+    save = JSON.parse(localStorage.getItem(SAVE_KEY) || "null");
+  } catch {}
 
   const idx = Number(save?.realmIndex ?? 0);
 
   const REALM_MINI = [
-    { key: "lianti",  name: "煉體" },
-    { key: "lianqi",  name: "練氣" },
-    { key: "zhujii",  name: "築基" },
-    { key: "jindan",  name: "金丹" },
-    { key: "yuanying",name: "元嬰" },
-    { key: "dujie",   name: "渡劫" },
-    { key: "zhenxian",name: "真仙" },
-    { key: "daluo",   name: "大羅" },
+    { key: "lianti", name: "煉體" },
+    { key: "lianqi", name: "練氣" },
+    { key: "zhujii", name: "築基" },
+    { key: "jindan", name: "金丹" },
+    { key: "yuanying", name: "元嬰" },
+    { key: "dujie", name: "渡劫" },
+    { key: "zhenxian", name: "真仙" },
+    { key: "daluo", name: "大羅" },
   ];
   const realm = REALM_MINI[Math.max(0, Math.min(idx, REALM_MINI.length - 1))];
 
   const QI_CAP = [1000, 5000, 30000, 200000, 1000000, 2000000, 10000000, 50000000];
   const XP_CAP = [100, 300, 800, 2000, 6000, 12000, 30000, 90000];
-  const qiMax = Number(save?.qiMax) || QI_CAP[Math.max(0, Math.min(idx, QI_CAP.length-1))];
-  const xpMax = Number(save?.xpMax) || XP_CAP[Math.max(0, Math.min(idx, XP_CAP.length-1))];
+  const qiMax = Number(save?.qiMax) || QI_CAP[Math.max(0, Math.min(idx, QI_CAP.length - 1))];
+  const xpMax = Number(save?.xpMax) || XP_CAP[Math.max(0, Math.min(idx, XP_CAP.length - 1))];
 
   return {
     nickname: profile?.name || "無名散修",
     sect: profile?.sectName || profile?.faction || "散修",
     realm,
     realmIndex: idx,
-    qi:  Number(save?.qi ?? 0),
+    qi: Number(save?.qi ?? 0),
     qiMax,
-    xp:  Number(save?.xp ?? 0),
+    xp: Number(save?.xp ?? 0),
     xpMax,
-    gold: Number(save?.stones ?? 0),        // 靈石
-    gem:  Number(save?.gems ?? 0),
+    gold: Number(save?.stones ?? 0), // 靈石
+    gem: Number(save?.gems ?? 0),
     lifeDays: Number(save?.lifeDays ?? save?.lifespan?.leftDays ?? 0),
     avatar: save?.avatar || "/icon-192x192.png",
   };
@@ -524,11 +615,7 @@ function Hub({ profile, onEnterCultivate }) {
   return (
     <div className="min-h-screen relative text-slate-100">
       {/* 背景 */}
-      <img
-        src={bg}
-        alt="門派場景"
-        className="absolute inset-0 w-full h-full object-cover opacity-70"
-      />
+      <img src={bg} alt="門派場景" className="absolute inset-0 w-full h-full object-cover opacity-70" />
       <div className="absolute inset-0 bg-black/50" />
 
       {/* 內容容器 */}
@@ -553,7 +640,7 @@ function Hub({ profile, onEnterCultivate }) {
             <h2 className="text-2xl font-bold tracking-wide">門派大殿</h2>
           </div>
 
-          {/* 主要功能：閉關修煉（打開 AppInner 覆蓋層） */}
+        {/* 主要功能：閉關修煉（打開 AppInner 覆蓋層） */}
           <button
             onClick={onEnterCultivate}
             className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-900/30"
@@ -600,12 +687,19 @@ function Hub({ profile, onEnterCultivate }) {
               <div className="grid md:grid-cols-2 gap-6 mt-4">
                 {[
                   { key: "alchemy", name: "煉丹房", desc: "消耗靈草煉製丹藥，成品可短期增益或交易。", img: "/bg/room-alchemy.jpg" },
-                  { key: "forge",   name: "神兵室", desc: "鍛造兵器、法器。若成靈，可綁定或上交換賣。", img: "/bg/room-forge.jpg" },
+                  { key: "forge", name: "神兵室", desc: "鍛造兵器、法器。若成靈，可綁定或上交換賣。", img: "/bg/room-forge.jpg" },
                   { key: "library", name: "藏經閣", desc: "以門派貢獻兌換心法、武學祕笈（限期制度）。", img: "/bg/room-library.jpg" },
-                  { key: "hall",    name: "執事堂", desc: "接取門派任務，升外門/內門、領取獎勵。", img: "/bg/room-hall.jpg" },
+                  { key: "hall", name: "執事堂", desc: "接取門派任務，升外門/內門、領取獎勵。", img: "/bg/room-hall.jpg" },
                 ].map((r) => (
-                  <div key={r.key} className="relative rounded-2xl overflow-hidden group shadow-lg border border-white/10">
-                    <img src={r.img} alt={r.name} className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-90 transition" />
+                  <div
+                    key={r.key}
+                    className="relative rounded-2xl overflow-hidden group shadow-lg border border-white/10"
+                  >
+                    <img
+                      src={r.img}
+                      alt={r.name}
+                      className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-90 transition"
+                    />
                     <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition" />
                     <div className="relative z-10 p-6 flex flex-col h-full justify-between">
                       <div>
@@ -658,7 +752,6 @@ function Hub({ profile, onEnterCultivate }) {
   );
 }
 
-/* ========= ⑥ 頁面組裝：封面 → 創角 → 主線 → 門派Hub →（覆蓋層）修煉系統 ========= */
 /* ========= ⑥ 頁面組裝：永遠先 Landing ========= */
 function XiuxianPage() {
   // 初始永遠顯示 landing
@@ -701,18 +794,22 @@ function XiuxianPage() {
   }
 
   if (phase === "story") {
-    const prof = player || (() => {
-      try { return JSON.parse(localStorage.getItem(PROFILE_KEY) || "null"); }
-      catch { return null; }
-    })();
+    const prof =
+      player ||
+      (() => {
+        try { return JSON.parse(localStorage.getItem(PROFILE_KEY) || "null"); }
+        catch { return null; }
+      })();
     return <Story profile={prof} onFinish={() => setPhase("hub")} />;
   }
 
   // phase === 'hub'
-  const prof = player || (() => {
-    try { return JSON.parse(localStorage.getItem(PROFILE_KEY) || "null"); }
-    catch { return null; }
-  })();
+  const prof =
+    player ||
+    (() => {
+      try { return JSON.parse(localStorage.getItem(PROFILE_KEY) || "null"); }
+      catch { return null; }
+    })();
 
   return (
     <>
@@ -733,35 +830,6 @@ function XiuxianPage() {
         </div>
       )}
     </>
-  );
-}
-
-
-  if (phase === "story") {
-    const prof = player || (()=> { try{ return JSON.parse(localStorage.getItem(PROFILE_KEY)||"null"); }catch{return null;} })();
-    return <Story profile={prof} onFinish={()=> setPhase("hub")} />;
-  }
-
-  if (phase === "creator") {
-    return (
-      <Creator
-        onDone={(payload)=> {
-          try { localStorage.setItem(PROFILE_KEY, JSON.stringify(payload)); } catch {}
-          setPlayer(payload);
-          setPhase("story"); // 創角完成 → 進入主線
-        }}
-      />
-    );
-  }
-
-  // landing
-  return (
-    <Landing
-      onEnter={() => {
-        try { localStorage.setItem(ENTERED_KEY, "1"); } catch {}
-        setPhase("creator");
-      }}
-    />
   );
 }
 
