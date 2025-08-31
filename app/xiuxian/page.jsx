@@ -4,7 +4,10 @@ import UserInfo from "./UserInfo";                 // 你目錄裡有 app/xiuxia
 import EventCenter from "./components/EventCenter"; // 若是具名匯出就改成：import { EventCenter } from "./components/EventCenter";
 import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
-
+import Landing from "./Landing";
+export default function Page() {
+  return <Landing onEnter={() => setPhase("creator")} />;
+}
 
 /* ========= 動態載入修煉系統（關閉 SSR，避免 hydration） ========= */
 const AppInner = dynamic(() => import("./AppInner"), { ssr: false });
@@ -73,7 +76,14 @@ function Landing({ onEnter }){
       <div className="relative z-10 h-screen flex flex-col items-center justify-center px-6">
         <img src="/logo.png" alt="Logo" className="h-20 mb-4 drop-shadow-[0_6px_30px_rgba(0,0,0,.6)]" onError={(e)=> (e.currentTarget.style.display="none")} />
         <h1 className="text-4xl md:text-5xl font-extrabold tracking-wide">修仙 · 啟程</h1>
-        <p className="mt-3 text-slate-300">吐納養氣，斬妖除魔，步步登天。</p>
+        <div className="space-y-2">
+		  <p className="text-2xl md:text-3xl font-bold text-slate-100">
+			佛非是我，凭何渡我。
+		  </p>
+		  <p className="text-xl md:text-2xl text-slate-300">
+			天未助我，凭何问我。
+		  </p>
+		</div>
         <button
           onClick={onEnter}
           className="mt-8 px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 shadow-xl shadow-emerald-900/30 text-lg"
@@ -805,3 +815,20 @@ function XiuxianPage(){
 }
 
 export default XiuxianPage;
+function SwordStreakFX() {
+  return (
+    <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+      {/* 劍光主體 */}
+      <div className="sword-streak" />
+      {/* 少量殘影 */}
+      <div className="sword-streak delay-700" />
+      <div className="sword-streak delay-1000" />
+      {/* 飄散粒子（幾顆就好） */}
+      {Array.from({length: 14}).map((_,i)=>(
+        <span key={i} className="spark" style={{
+          animationDelay: `${(i%7)*0.3 + (i>6? 2.2:0)}s`
+        }} />
+      ))}
+    </div>
+  );
+}
