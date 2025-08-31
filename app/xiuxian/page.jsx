@@ -578,7 +578,7 @@ function Hub({ profile, onEnterCultivate }) {
             onClick={onEnterCultivate}
             className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-900/30"
           >
-            關閉修煉
+            閉關修煉
           </button>
         </div>
 
