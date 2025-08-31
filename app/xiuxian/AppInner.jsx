@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BACKGROUNDS } from "../../data/backgrounds";
 import { punishQiOverflow as punishQiOverflowRaw } from "./lib/qiOverflow";
+import Link from "next/link";
 
 /* ===================== 常量 ===================== */
 const SAVE_KEY = "xiuxian-save-v1";
@@ -465,18 +466,32 @@ const refineStones = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-gray-900 to-black text-slate-100 p-4 md:p-8">
       <header className="flex flex-col md:flex-row md:items-end gap-4 md:gap-8 max-w-6xl mx-auto">
-        <div>
-          <h1 className="text-3xl md:text-4xl font-bold tracking-wide">修仙論道 · MVP</h1>
-          <p className="text-slate-300">修煉 → 強化 → 突破 → 飛升（含：背景四階段、渡劫特化、本地排行）</p>
-        </div>
-        <div className="flex-1" />
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm">
-          <Stat label="靈力" value={fmt(s.qi)} />
-          <Stat label="靈石" value={fmt(s.stones)} />
-          <Stat label="道心" value={fmt(s.daoHeart)} />
-          <Stat label="境界" value={`${REALMS[s.realmIndex]?.name ?? "無"} ×${REALMS[s.realmIndex]?.multiplier ?? 1}`} />
-        </div>
-      </header>
+  <div>
+    <h1 className="text-3xl md:text-4xl font-bold tracking-wide">修仙論道 · MVP</h1>
+    <p className="text-slate-300">修煉 → 強化 → 突破 → 飛升（含：背景四階段、渡劫特化、本地排行）</p>
+  </div>
+
+  <div className="flex-1" />
+
+  {/* 導覽按鈕 */}
+  <nav className="flex gap-2 text-sm">
+    <Link href="/xiuxian/world" className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700">
+      大地圖
+    </Link>
+    <Link href="/xiuxian/sect" className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700">
+      門派
+    </Link>
+  </nav>
+
+  {/* 右側數值統計 */}
+  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm">
+    <Stat label="靈力" value={fmt(s.qi)} />
+    <Stat label="靈石" value={fmt(s.stones)} />
+    <Stat label="道心" value={fmt(s.daoHeart)} />
+    <Stat label="境界" value={`${REALMS[s.realmIndex]?.name ?? "無"} ×${REALMS[s.realmIndex]?.multiplier ?? 1}`} />
+  </div>
+</header>
+
 
       <MeditationHeroImg realmKey={REALMS[s.realmIndex]?.key} />
 

@@ -1,8 +1,14 @@
-// app/xiuxian/layout.jsx  (Server Component)
-import "./userinfo.css";   // 注意這裡是 ./ 而不是 ../
+// app/xiuxian/layout.jsx (Server Component)
+import "./userinfo.css";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+import ClientProviders from "./ClientProviders";
+
 export default function XiuxianLayout({ children }) {
-  return children;
+  return (
+    <ClientProviders>
+      {children}
+    </ClientProviders>
+  );
 }
