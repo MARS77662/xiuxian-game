@@ -1,12 +1,14 @@
 "use client";
 
+import Image from "next/image";
+
 function SwordStreakFX() {
   return (
     <div
       aria-hidden
       className="pointer-events-none absolute inset-0 overflow-hidden z-30"
     >
-      {/* 三道劍光（改用 fx-* 名稱避免和 tailwind 衝突） */}
+      {/* 三道劍光 */}
       <div className="fx-streak" style={{ animationDelay: "0s" }} />
       <div className="fx-streak" style={{ animationDelay: "0.7s" }} />
       <div className="fx-streak" style={{ animationDelay: "1s" }} />
@@ -51,7 +53,6 @@ function SwordStreakFX() {
             opacity: 0;
           }
         }
-        /* ⚠️ 不再停用「減少動態」，確保你一定看得到 */
       `}</style>
     </div>
   );
@@ -60,7 +61,7 @@ function SwordStreakFX() {
 export default function Landing({ onEnter }) {
   return (
     <div className="min-h-screen relative text-slate-100">
-      {/* 背景圖：不存在就自動 fallback */}
+      {/* 背景圖（失敗就換雲海） */}
       <img
         src="/bg/landing.jpg"
         onError={(e) => {
@@ -69,24 +70,25 @@ export default function Landing({ onEnter }) {
         alt="背景"
         className="absolute inset-0 w-full h-full object-cover"
       />
-      {/* 暗色遮罩放在 z-20，劍光 z-30 就會在上面 */}
+      {/* 暗色遮罩 */}
       <div className="absolute inset-0 bg-black/55 z-20" />
 
-      {/* 劍光 */}
+      {/* 劍光特效（在遮罩之上） */}
       <SwordStreakFX />
 
-      {/* 內容（z-40） */}
+      {/* 內容層 */}
       <div className="relative z-40 h-screen flex flex-col items-center justify-center px-6 text-center">
+        {/* Logo 當主標題 */}
         <Image
-  src="/logo.png"       // 你的 Logo 圖檔
-  alt="修仙啟程"
-  width={260}           // 可以調大一點，取代標題文字
-  height={260}
-  priority
-  className="mb-4 drop-shadow-[0_10px_35px_rgba(0,0,0,.6)]"
-/>
+          src="/logo.png"     // 請放在 /public/logo.png 或改路徑
+          alt="修仙啟程"
+          width={260}
+          height={260}
+          priority
+          className="mb-4 drop-shadow-[0_10px_35px_rgba(0,0,0,.6)]"
+        />
 
-
+        {/* 副標語 */}
         <div className="space-y-2">
           <p className="text-2xl md:text-3xl font-bold text-slate-100">
             佛非是我，凭何渡我。
@@ -96,6 +98,7 @@ export default function Landing({ onEnter }) {
           </p>
         </div>
 
+        {/* 進入按鈕 */}
         <button
           onClick={onEnter}
           className="mt-8 px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 shadow-xl shadow-emerald-900/30 text-lg"
