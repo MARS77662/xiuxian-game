@@ -134,16 +134,27 @@ export default function Landing({ onEnter }) {
 
       {/* 內容再往上疊 */}
       <div className="relative z-30 h-screen flex flex-col items-center justify-center px-6 text-center">
-        <h1 className="text-4xl md:text-5xl font-extrabold tracking-wide mb-4">
-          修仙 · 啟程
-        </h1>
-        <button
-          onClick={onEnter}
-          className="mt-8 px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 shadow-xl shadow-emerald-900/30 text-lg"
-        >
-          進入修仙世界
-        </button>
-      </div>
+  <h1 className="text-4xl md:text-5xl font-extrabold tracking-wide mb-4">
+    修仙 · 啟程
+  </h1>
+
+  <div className="space-y-2">
+    <p className="text-2xl md:text-3xl font-bold text-slate-100">
+      佛非是我，凭何渡我。
+    </p>
+    <p className="text-xl md:text-2xl text-slate-300">
+      天未助我，凭何问我。
+    </p>
+  </div>
+
+  <button
+    onClick={onEnter}
+    className="mt-8 px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 shadow-xl shadow-emerald-900/30 text-lg"
+  >
+    進入修仙世界
+  </button>
+</div>
+
     </div>
   );
 }
