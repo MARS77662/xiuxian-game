@@ -112,16 +112,7 @@ export default function Landing({ onEnter }) {
           />
         </div>
 
-        {/* 後備：若沒放圖片，仍能點擊（可保留也可刪） */}
-        <noscript>
-          <style>{`.fallback-enter{display:inline-block;margin-top:16px;}`}</style>
-        </noscript>
-        <button
-          onClick={onEnter}
-          className="fallback-enter mt-4 hidden rounded-2xl bg-emerald-600 px-6 py-3 text-lg shadow-xl shadow-emerald-900/30 hover:bg-emerald-500 sm:inline-block"
-        >
-          進入修仙世界
-        </button>
+        
       </div>
     </div>
   );
