@@ -521,16 +521,20 @@ function buildUserInfoState(profile){
 
 /* ========= ⑤ 門派主場景 Hub ========= */
 /* 你專案裡應該已有 <UserInfo /> 與 <EventCenter />，這裡直接呼叫 */
-function Hub({ profile, onEnterCultivate }){
+function Hub({ profile, onEnterCultivate }) {
   const faction = profile?.faction || "散修";
   const sectKey = profile?.sectKey;
   const sectName = profile?.sectName || "門派";
-  const bg = profile?.sectSceneBg || SECT_SCENE_BG[sectKey] || SECT_SCENE_FALLBACK[faction] || BG_BY_FACTION[faction] || BG_DEFAULT;
+  const bg =
+    profile?.sectSceneBg ||
+    SECT_SCENE_BG[sectKey] ||
+    SECT_SCENE_FALLBACK[faction] ||
+    BG_BY_FACTION[faction] ||
+    BG_DEFAULT;
 
   const [tab, setTab] = useState("sect"); // sect | quests | explore | demon | market
   const [ui, setUi] = useState(() => buildUserInfoState(profile));
 
-  // 每秒刷新一次，讓修煉時（AppInner 更新）左上角數值即時跟到
   useEffect(() => {
     setUi(buildUserInfoState(profile));
     const id = setInterval(() => setUi(buildUserInfoState(profile)), 1000);
@@ -540,24 +544,30 @@ function Hub({ profile, onEnterCultivate }){
   return (
     <div className="min-h-screen relative text-slate-100">
       {/* 背景 */}
-      <img src={bg} alt="門派場景" className="absolute inset-0 w-full h-full object-cover opacity-70" />
+      <img
+        src={bg}
+        alt="門派場景"
+        className="absolute inset-0 w-full h-full object-cover opacity-70"
+      />
       <div className="absolute inset-0 bg-black/50" />
 
-      <div className="relative z-10 max-w-5xl mx-auto px-4 py-6 pt-[160px] md:pt-28">
-        {/* 左上角玩家資訊（手機固定右上，桌機恢復預設） */}
-		<div className="relative z-10 max-w-5xl mx-auto px-4 py-6 pt-6 md:pt-28">
-		  <UserInfo state={ui} />
-		</div>
-
-		{/* 手機預留名片高度，避免被覆蓋 */}
-		<div className="flex items-center gap-3 mb-4">
-
+      {/* 內容容器：手機不用大 padding，名片在文流內會自己把內容推開 */}
+      <div className="relative z-10 max-w-5xl mx-auto px-4 py-6 pt-6 md:pt-28">
+        {/* 名片：回到文流（不跟著畫面移動） */}
+        <UserInfo state={ui} />
 
         {/* 頂部欄 */}
         <div className="flex items-center gap-3 mb-4">
-          <img src="/logo.png" alt="Logo" className="h-10 drop-shadow" onError={(e)=> (e.currentTarget.style.display="none")} />
+          <img
+            src="/logo.png"
+            alt="Logo"
+            className="h-10 drop-shadow"
+            onError={(e) => (e.currentTarget.style.display = "none")}
+          />
           <div className="flex-1">
-            <div className="text-xs text-slate-300">{faction} · {sectName}</div>
+            <div className="text-xs text-slate-300">
+              {faction} · {sectName}
+            </div>
             <h2 className="text-2xl font-bold tracking-wide">門派大殿</h2>
           </div>
 
@@ -566,23 +576,27 @@ function Hub({ profile, onEnterCultivate }){
             onClick={onEnterCultivate}
             className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-900/30"
           >
-            閉關修煉
+            關閉修煉
           </button>
         </div>
 
-        {/* 導覽按鈕 */}
+        {/* 分頁按鈕 */}
         <div className="flex flex-wrap gap-2 mb-4">
           {[
-            ["sect","門派"],
-            ["quests","任務"],
-            ["explore","探索"],
-            ["demon","斬妖"],
-            ["market","坊市"]
-          ].map(([key,label])=> (
+            ["sect", "門派"],
+            ["quests", "任務"],
+            ["explore", "探索"],
+            ["demon", "斬妖"],
+            ["market", "坊市"],
+          ].map(([key, label]) => (
             <button
               key={key}
-              onClick={()=> setTab(key)}
-              className={`px-3 py-1.5 rounded-xl border ${tab===key? "border-indigo-400 bg-indigo-500/15":"border-white/10 hover:border-white/30 hover:bg-white/5"}`}
+              onClick={() => setTab(key)}
+              className={`px-3 py-1.5 rounded-xl border ${
+                tab === key
+                  ? "border-indigo-400 bg-indigo-500/15"
+                  : "border-white/10 hover:border-white/30 hover:bg-white/5"
+              }`}
             >
               {label}
             </button>
@@ -590,78 +604,110 @@ function Hub({ profile, onEnterCultivate }){
         </div>
 
         {/* 內容卡片 */}
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-5 min-h-[320px]">
-        {tab==="sect" && (
-          <div className="space-y-6">
-            {/* 掌門對話 */}
-            <div className="text-slate-300">
-              掌門：「{profile?.name || "小道友"}，修途漫漫，請於門中磨礪心性。」
-            </div>
-            <div className="text-sm text-slate-400 mb-4">
-              可前往 <b>煉丹房 / 神兵室 / 藏經閣 / 執事堂</b>；或點右上角進入 <b>閉關修煉</b> 系統。
-            </div>
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-5 min-h-[320px]">
+          {tab === "sect" && (
+            <div className="space-y-3">
+              <div className="text-slate-300">
+                掌門：「{profile?.name || "小道友"}，修途漫漫，請於門中磨礪心性。」
+              </div>
+              <div className="text-sm text-slate-400">
+                可前往 <b>煉丹房 / 神兵室 / 藏經閣 / 執事堂</b>；或點右上角進入{" "}
+                <b>閉關修煉</b> 系統。
+              </div>
 
-            {/* 四大房間卡片 */}
-            <div className="grid md:grid-cols-2 gap-6">
-              {[
-                { key: "alchemy", name: "煉丹房", desc: "消耗靈草煉製丹藥，成品可短期增益或交易。", img: "/bg/room-alchemy.jpg" },
-                { key: "forge",   name: "神兵室", desc: "鍛造兵器、法器。若成靈，可綁定或上交換賣。", img: "/bg/room-forge.jpg" },
-                { key: "library", name: "藏經閣", desc: "以門派貢獻兌換心法、武學祕笈（限期制度）。", img: "/bg/room-library.jpg" },
-                { key: "hall",    name: "執事堂", desc: "接取門派任務，升外門/內門、領取獎勵。",   img: "/bg/room-hall.jpg" },
-              ].map(r => (
-                <div key={r.key} className="relative rounded-2xl overflow-hidden group shadow-lg border border-white/10">
-                  <img src={r.img} alt={r.name} className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-90 transition" />
-                  <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition" />
-                  <div className="relative z-10 p-6 flex flex-col h-full justify-between">
-                    <div>
-                      <h3 className="text-xl font-bold mb-2">{r.name}</h3>
-                      <p className="text-slate-300 text-sm">{r.desc}</p>
+              {/* 四大房間卡片 */}
+              <div className="grid md:grid-cols-2 gap-6 mt-4">
+                {[
+                  {
+                    key: "alchemy",
+                    name: "煉丹房",
+                    desc: "消耗靈草煉製丹藥，成品可短期增益或交易。",
+                    img: "/bg/room-alchemy.jpg",
+                  },
+                  {
+                    key: "forge",
+                    name: "神兵室",
+                    desc: "鍛造兵器、法器。若成靈，可綁定或上交換賣。",
+                    img: "/bg/room-forge.jpg",
+                  },
+                  {
+                    key: "library",
+                    name: "藏經閣",
+                    desc: "以門派貢獻兌換心法、武學祕笈（限期制度）。",
+                    img: "/bg/room-library.jpg",
+                  },
+                  {
+                    key: "hall",
+                    name: "執事堂",
+                    desc: "接取門派任務，升外門/內門、領取獎勵。",
+                    img: "/bg/room-hall.jpg",
+                  },
+                ].map((r) => (
+                  <div
+                    key={r.key}
+                    className="relative rounded-2xl overflow-hidden group shadow-lg border border-white/10"
+                  >
+                    <img
+                      src={r.img}
+                      alt={r.name}
+                      className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-90 transition"
+                    />
+                    <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition" />
+                    <div className="relative z-10 p-6 flex flex-col h-full justify-between">
+                      <div>
+                        <h3 className="text-xl font-bold mb-2">{r.name}</h3>
+                        <p className="text-slate-300 text-sm">{r.desc}</p>
+                      </div>
+                      <button
+                        onClick={() => alert(`進入 ${r.name}（尚未實作）`)}
+                        className="mt-4 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white self-start"
+                      >
+                        進入
+                      </button>
                     </div>
-                    <button
-                      onClick={() => alert(`進入 ${r.name}（尚未實作）`)}
-                      className="mt-4 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white self-start"
-                    >
-                      進入
-                    </button>
                   </div>
-                </div>
-              ))}   {/* ← map 結束 */}
+                ))}
+              </div>
             </div>
-          </div>
-        )}        {/* ← sect 區塊結束 */}
+          )}
 
-        {tab==="quests" && (
-          <div className="space-y-3">
-            <h3 className="text-lg font-semibold">事件中心</h3>
-            <EventCenter />
-          </div>
-        )}
+          {tab === "quests" && (
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold">事件中心</h3>
+              <EventCenter />
+            </div>
+          )}
 
-        {tab==="explore" && (
-          <div className="space-y-3">
-            <h3 className="text-lg font-semibold">門外探索（雛型）</h3>
-            <p className="text-slate-300">隨機遭遇：機緣／秘境／奇人／劫匪。</p>
-          </div>
-        )}
+          {tab === "explore" && (
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold">門外探索（雛型）</h3>
+              <p className="text-slate-300">
+                隨機遭遇：機緣／秘境／奇人／劫匪。之後用事件池實現。
+              </p>
+            </div>
+          )}
 
-        {tab==="demon" && (
-          <div className="space-y-3">
-            <h3 className="text-lg font-semibold">斬妖除魔（雛型）</h3>
-            <p className="text-slate-300">之後接戰鬥/事件鏈。</p>
-          </div>
-        )}
+          {tab === "demon" && (
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold">斬妖除魔（雛型）</h3>
+              <p className="text-slate-300">之後接戰鬥/擲骰，或觸發事件鏈。</p>
+            </div>
+          )}
 
-        {tab==="market" && (
-          <div className="space-y-3">
-            <h3 className="text-lg font-semibold">坊市（雛型）</h3>
-            <p className="text-slate-300">法器、丹藥、功法在此購買。</p>
-          </div>
-        )}
-      </div>  
-    </div>    
-  </div>      
-);            
-}            
+          {tab === "market" && (
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold">坊市（雛型）</h3>
+              <p className="text-slate-300">
+                法器、丹藥、功法將在此購買（可與 AppInner 的資源互通）。
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+  
 
 /* ========= ⑥ 頁面組裝：封面 → 創角 → 主線 → 門派Hub →（覆蓋層）修煉系統 ========= */
 function XiuxianPage(){
