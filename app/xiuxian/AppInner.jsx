@@ -604,7 +604,7 @@ const refineStones = () => {
         </Card>
 
         <Card title="飛升">
-          <div className="text-sm text-slate-300">條件：達到最終境界且修為 ≥ 100,000,000。</div>
+          <div className="text-sm text-slate-300">條件：達到最終境界且修為 ≥ 100,000,000.</div>
           <div className="mt-3">
             <button onClick={ascend} disabled={!canAscend}
                     className={`px-4 py-2 rounded-lg ${canAscend? 'bg-emerald-700 hover:bg-emerald-600':'bg-slate-700 cursor-not-allowed'}`}>
