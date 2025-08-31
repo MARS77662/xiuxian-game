@@ -57,14 +57,13 @@
   width: 100% !important;        /* 讓卡片自然佔寬 */
   z-index: auto !important;      /* 不壓住下面 */
 }
-/* >=768px 桌機才恢復左上浮動 */
-@media (min-width: 768px){
-  .ui-userinfo{
-    position: absolute !important;
-    top: 10px !important;
-    left: 10px !important;
-    transform: none !important;
-    width: auto !important;
-    z-index: 9999 !important;
+/* 手機版：名片不要懸浮，跟著畫面滾動 */
+@media (max-width: 768px) {
+  .ui-userinfo {
+    position: static;   /* 不要 fixed/absolute */
+    margin-bottom: 12px; /* 和下方內容保持距離 */
+    width: auto;         /* 讓它自適應，不要擠壓 */
+    transform: none;     /* 清掉縮放效果 */
   }
 }
+
