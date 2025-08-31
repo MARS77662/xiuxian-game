@@ -96,7 +96,7 @@ export default function Landing({ onEnter }) {
           onClick={onEnter}
           className="mt-8 px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 shadow-xl shadow-emerald-900/30 text-lg"
         >
-          進入修仙世界
+          進入世界
         </button>
       </div>
     </div>
