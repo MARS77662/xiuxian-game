@@ -71,6 +71,68 @@ function Stepper({ step }) {
   );
 }
 
+/* ========= ① 新版：前情概要（影片版） ========= */
+function Intro({ onNext, onSkip }) {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => {
+      setIsMobile(window.innerWidth < 768); // 768px 以下當作手機
+    };
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  const VIDEO_URL_DESKTOP = "https://www.dell.com/community/assets/community/687062f5-603c-4f5f-ab9d-31aa7cacb376/-8e5a4fd3-28be-4979-a2bf-0b235ff450b3-1478659.mp4";
+  const VIDEO_URL_MOBILE  = "https://www.dell.com/community/assets/community/687062f5-603c-4f5f-ab9d-31aa7cacb376/1-2ffba802-43b3-453f-841f-d083b23b9330-46731188.mp4";
+  const POSTER_URL        = "/bg/bg-clouds.jpg";
+
+  const url = isMobile ? VIDEO_URL_MOBILE : VIDEO_URL_DESKTOP;
+
+  return (
+    <div className="min-h-screen relative text-slate-100">
+      <video
+        id="introVideo"
+        className="absolute inset-0 w-full h-full object-cover"
+        src={url}
+        poster={POSTER_URL}
+        autoPlay
+        loop={false}
+        muted
+        playsInline
+        webkit-playsinline="true"
+        preload="auto"
+        onEnded={onNext}
+      />
+      <div className="absolute inset-0 bg-black/35" />
+
+      {/* 控制列 */}
+      <div className="relative z-10 max-w-3xl mx-auto px-4 py-10 h-screen flex flex-col justify-end">
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+          <p className="text-slate-200">在這片天地之間，靈氣縈繞，凡俗亦可問道…</p>
+          <div className="mt-4 flex gap-2 justify-end">
+            <button
+              onClick={onSkip}
+              className="px-4 py-2 rounded-xl border border-white/15 hover:border-white/30 hover:bg-white/5"
+            >
+              跳過
+            </button>
+            <button
+              onClick={onNext}
+              className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500"
+            >
+              下一步
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+
 /* ========= ② 創角嚮導 ========= */
 function Creator({ onDone }) {
   const [step, setStep] = useState(0); // 0:命名 1:門派 2:屬性
@@ -238,7 +300,7 @@ function Creator({ onDone }) {
                   const active =
                     sectKey === s.key
                       ? "border-indigo-400 bg-indigo-500/15 shadow-[0_0_0_2px_rgba(99,102,241,.25)]"
-                      : "border-white/10 hover:border-white/30 hover:bg-white/5";
+                      : "border-white/10 hover:border-white/30 hover:bg白/5";
 
                   return (
                     <button
@@ -487,7 +549,7 @@ function Story({ profile, onFinish }) {
           e.currentTarget.style.display = "none";
         }}
       />
-      <div className="absolute inset-0 bg-black/55" />
+      <div className="absolute inset-0 bg黑/55" />
 
       <div className="relative z-10 max-w-3xl mx-auto px-4 py-10">
         <header className="flex items-center gap-3 mb-4">
@@ -512,23 +574,23 @@ function Story({ profile, onFinish }) {
             ))}
           </div>
 
-          <div className="mt-5 flex flex-wrap gap-2 justify-end">
-            {Array.isArray(node.choices) && node.choices.length > 0 ? (
-              node.choices.map((c, i) => (
-                <button
-                  key={i}
-                  onClick={() => choose(c)}
-                  className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500"
-                >
-                  {c.text}
-                </button>
-              ))
-            ) : (
-              <button onClick={next} className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500">
-                繼續
+        <div className="mt-5 flex flex-wrap gap-2 justify-end">
+          {Array.isArray(node.choices) && node.choices.length > 0 ? (
+            node.choices.map((c, i) => (
+              <button
+                key={i}
+                onClick={() => choose(c)}
+                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500"
+              >
+                {c.text}
               </button>
-            )}
-          </div>
+            ))
+          ) : (
+            <button onClick={next} className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500">
+              繼續
+            </button>
+          )}
+        </div>
 
           <div className="mt-3 text-right">
             <button
@@ -640,7 +702,7 @@ function Hub({ profile, onEnterCultivate }) {
             <h2 className="text-2xl font-bold tracking-wide">門派大殿</h2>
           </div>
 
-        {/* 主要功能：閉關修煉（打開 AppInner 覆蓋層） */}
+          {/* 主要功能：閉關修煉（打開 AppInner 覆蓋層） */}
           <button
             onClick={onEnterCultivate}
             className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-900/30"
@@ -708,7 +770,7 @@ function Hub({ profile, onEnterCultivate }) {
                       </div>
                       <button
                         onClick={() => alert(`進入 ${r.name}（尚未實作）`)}
-                        className="mt-4 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white self-start"
+                        className="mt-4 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text白 self-start"
                       >
                         進入
                       </button>
@@ -752,10 +814,10 @@ function Hub({ profile, onEnterCultivate }) {
   );
 }
 
-/* ========= ⑥ 頁面組裝：永遠先 Landing ========= */
+/* ========= ⑥ 頁面組裝：Landing → Intro → Creator → Story → Hub ========= */
 function XiuxianPage() {
   // 初始永遠顯示 landing
-  const [phase, setPhase] = useState("landing"); // 'landing' | 'creator' | 'story' | 'hub'
+  const [phase, setPhase] = useState("landing"); // 'landing' | 'intro' | 'creator' | 'story' | 'hub'
   const [player, setPlayer] = useState(null);
   const [showCultivate, setShowCultivate] = useState(false);
 
@@ -763,22 +825,32 @@ function XiuxianPage() {
   const handleEnter = () => {
     try { localStorage.setItem(ENTERED_KEY, "1"); } catch {}
 
+    // 若已有創角檔，視為回流 → 直接進 Hub
     try {
       const raw = localStorage.getItem(PROFILE_KEY);
       if (raw) {
         const prof = JSON.parse(raw);
         setPlayer(prof);
-        setPhase("hub");       // 舊帳 → 直接進 Hub
-      } else {
-        setPhase("creator");   // 新帳 → 走創角
+        setPhase("hub");       // 舊帳 → 直接進 Hub（維持你原本的 UX）
+        return;
       }
-    } catch {
-      setPhase("creator");
-    }
+    } catch {}
+
+    // 新帳 → 先看前情概要，再去創角
+    setPhase("intro");
   };
 
   if (phase === "landing") {
     return <Landing onEnter={handleEnter} />;
+  }
+
+  if (phase === "intro") {
+    return (
+      <Intro
+        onNext={() => setPhase("creator")}
+        onSkip={() => setPhase("creator")}
+      />
+    );
   }
 
   if (phase === "creator") {
