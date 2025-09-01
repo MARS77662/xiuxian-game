@@ -116,32 +116,56 @@ export default function Landing({ onEnter }) {
 
       {/* Logo 動畫樣式（不依賴 tailwind 任意 animate，保證會動） */}
       <style jsx global>{`
-        .logo-wrap { position: relative; display: inline-block; }
-        .logo-img {
-          opacity: 0;
-          animation: logoFadeIn 900ms ease-out forwards, logoBreath 3000ms ease-in-out 900ms infinite;
-          will-change: transform, filter, opacity;
-        }
-        .logo-wrap::after{
-          content:""; position:absolute; inset:-3% -10%;
-          background: linear-gradient(110deg,
-            rgba(255,255,255,0) 0%,
-            rgba(190,255,255,.55) 50%,
-            rgba(255,255,255,0) 100%);
-          transform: translateX(-120%);
-          animation: logoShimmer 2.8s linear 700ms infinite;
-          mix-blend-mode: screen; pointer-events:none;
-        }
-        @keyframes logoFadeIn {
-          from { opacity:0; transform: translateY(6px) scale(.985); }
-          to   { opacity:1; transform: translateY(0)   scale(1); }
-        }
-        @keyframes logoBreath {
-          0%,100% { transform: scale(1);    filter: drop-shadow(0 0 18px rgba(0,255,200,.35)); }
-          50%     { transform: scale(1.035); filter: drop-shadow(0 0 36px rgba(120,255,220,.85)); }
-        }
-        @keyframes logoShimmer { to { transform: translateX(140%); } }
-      `}</style>
+  .fx-streak {
+    position: absolute;
+    left: -10vmax;        /* 原 -20vmax → 往右一點，避免太長的進場 */
+    bottom: 0vmax;        /* 原 -6vmax → 提高路徑，較不會撞到底部 */
+    width: 30vmax;        /* 原 40vmax → 縮窄光束長度 */
+    height: 6px;
+    transform: rotate(-10deg); /* 原 -12deg → 路徑稍微平一些 */
+    border-radius: 999px;
+    background: linear-gradient(
+      90deg,
+      rgba(255,255,255,0) 0%,
+      rgba(255,255,255,0.9) 35%,
+      rgba(180,220,255,0.95) 55%,
+      rgba(120,180,255,0.7) 70%,
+      rgba(255,255,255,0) 100%
+    );
+    filter: blur(8px) drop-shadow(0 0 12px rgba(120,180,255,0.65));
+    animation: swordSweep 2.6s linear infinite;
+  }
+
+  @keyframes swordSweep {
+    0% {
+      transform: translate3d(0, 0, 0) rotate(-10deg);
+      opacity: 0;
+    }
+    10% { opacity: .95; }
+    85% { opacity: 1; }
+    100% {
+      /* 用視窗相對單位，保證剛好掃過畫面不溢出 */
+      transform: translate3d(115vw, -52vh, 0) rotate(-10deg);
+      opacity: 0;
+    }
+  }
+
+  /* 超寬螢幕再多給一點位移，避免太早收束 */
+  @media (min-aspect-ratio: 16/9) {
+    @keyframes swordSweep {
+      100% { transform: translate3d(120vw, -50vh, 0) rotate(-10deg); opacity:0; }
+    }
+  }
+
+  /* 手機路徑更平、更短，避免看起來掃太快 */
+  @media (max-width: 480px) {
+    .fx-streak { left: -8vmax; width: 26vmax; transform: rotate(-8deg); }
+    @keyframes swordSweep {
+      100% { transform: translate3d(110vw, -38vh, 0) rotate(-8deg); opacity:0; }
+    }
+  }
+`}</style>
+
     </div>
   );
 }
