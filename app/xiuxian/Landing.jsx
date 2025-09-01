@@ -1,7 +1,7 @@
 'use client';
 import Image from "next/image";
 
-/* —— Landing（去光條，只保留 Logo 起伏） —— */
+/* —— Landing（移除光條；確保 Logo 會動：用包一層容器做動畫） —— */
 export default function Landing({ onEnter }) {
   return (
     <div className="min-h-screen relative text-slate-100">
@@ -17,15 +17,17 @@ export default function Landing({ onEnter }) {
 
       {/* 內容 */}
       <div className="relative z-20 h-screen flex flex-col items-center justify-center px-6 text-center">
-        {/* Logo：保留原尺寸 + 起伏特效 */}
-        <Image
-          src="/logo.png"
-          alt="修仙啟程"
-          width={1640}
-          height={664}
-          priority
-          className="logo-img mb-5 h-auto w-[clamp(360px,92vw,1000px)] drop-shadow-[0_10px_35px_rgba(0,0,0,.6)]"
-        />
+        {/* 用一層容器做動畫，避免 next/image class 掛在 wrapper 造成不動 */}
+        <div className="logo-motion mb-5">
+          <Image
+            src="/logo.png"
+            alt="修仙啟程"
+            width={1640}
+            height={664}
+            priority
+            className="h-auto w-[clamp(360px,92vw,1000px)] drop-shadow-[0_10px_35px_rgba(0,0,0,.6)]"
+          />
+        </div>
 
         {/* 副標語 */}
         <div className="space-y-2">
@@ -37,7 +39,7 @@ export default function Landing({ onEnter }) {
           </p>
         </div>
 
-        {/* 圖片按鈕（/public/btn-enter.png） */}
+        {/* 圖片按鈕 */}
         <div className="mt-8">
           <Image
             src="/btn-enter.png"
@@ -51,8 +53,15 @@ export default function Landing({ onEnter }) {
         </div>
       </div>
 
-      {/* 只保留 Logo 起伏與淡入（純 CSS，不依賴 tailwind animate） */}
       <style jsx global>{`
+        /* 只動外層容器，確保一定會動 */
+        .logo-motion {
+          display: inline-block;
+          opacity: 0;
+          animation: logoFadeIn 900ms ease-out forwards, logoBreath 3200ms ease-in-out 900ms infinite;
+          will-change: transform, opacity, filter;
+          filter: drop-shadow(0 0 18px rgba(0,255,200,.35));
+        }
         @keyframes logoFadeIn {
           from { opacity: 0; transform: translateY(6px) scale(.985); }
           to   { opacity: 1; transform: translateY(0)   scale(1); }
@@ -60,14 +69,6 @@ export default function Landing({ onEnter }) {
         @keyframes logoBreath {
           0%,100% { transform: translateY(0)   scale(1);    filter: drop-shadow(0 0 18px rgba(0,255,200,.35)); }
           50%     { transform: translateY(-4px) scale(1.03); filter: drop-shadow(0 0 34px rgba(120,255,220,.75)); }
-        }
-        .logo-img {
-          opacity: 0;
-          animation: logoFadeIn 900ms ease-out forwards, logoBreath 3200ms ease-in-out 900ms infinite;
-          will-change: transform, filter, opacity;
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .logo-img { animation: none; opacity: 1; }
         }
       `}</style>
     </div>
