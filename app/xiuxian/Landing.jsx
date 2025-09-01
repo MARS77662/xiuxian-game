@@ -3,24 +3,10 @@ import { useEffect, useRef } from "react";
 import Image from "next/image";
 
 export default function Landing() {
-  const sweepRef = useRef(null);
-
-  useEffect(() => {
-    const el = sweepRef.current;
-    if (!el) return;
-    // 每 6 秒重置一次，避免某些瀏覽器長時間後停動
-    const t = setInterval(() => {
-      el.style.animation = "none";
-      void el.offsetWidth; // reflow
-      el.style.animation = "swordSweep 3s linear infinite";
-    }, 6000);
-    return () => clearInterval(t);
-  }, []);
-
   return (
     <div className="screen">
-      {/* 劍光掃過 */}
-      <div ref={sweepRef} className="sweep" />
+      {/* 劍光掃過（改成窄光束，避免整片覆蓋） */}
+      <div className="sweep"><div className="beam" /></div>
 
       {/* LOGO 與文案 */}
       <div className="center">
@@ -57,20 +43,26 @@ export default function Landing() {
         }
         .center { position: relative; z-index: 2; text-align: center; }
 
-        /* 劍光掃過 */
+        /* 劍光掃過（窄光束，旋轉 18°，從左到右） */
         .sweep {
-          position: absolute; inset: 0; z-index: 1;
-          background: linear-gradient(115deg, rgba(0,0,0,0) 40%, rgba(120,255,240,0.25) 50%, rgba(0,0,0,0) 60%);
-          mix-blend-mode: screen;
-          filter: blur(1px);
-          animation: swordSweep 3s linear infinite;
-          pointer-events: none;
+          position: absolute; inset: -10% -10%; z-index: 1; pointer-events:none; overflow:hidden;
         }
-        @keyframes swordSweep {
-          0%   { transform: translateX(-110%) translateY(10%); opacity: 0; }
-          15%  { opacity: 1; }
-          85%  { opacity: 1; }
-          100% { transform: translateX(110%) translateY(-10%); opacity: 0; }
+        .beam {
+          position: absolute; top: -20vh; left: -30vw;
+          width: 28vw; height: 160vh;
+          background: linear-gradient(to right,
+            rgba(0,0,0,0) 0%,
+            rgba(120,255,240,0.00) 35%,
+            rgba(120,255,240,0.28) 50%,
+            rgba(120,255,240,0.00) 65%,
+            rgba(0,0,0,0) 100%);
+          filter: blur(1.5px);
+          mix-blend-mode: screen;
+          transform: rotate(18deg) translateX(-120vw);
+          animation: beamSweep 6s linear infinite;
+        }
+        @keyframes beamSweep {
+          to { transform: rotate(18deg) translateX(120vw); }
         }
 
         /* Logo 特效：淡入 + 呼吸 + 流光 */
@@ -144,7 +136,7 @@ export default function Landing() {
 
         /* 動畫無障礙：若使用者偏好減少動效，關閉非必要動畫 */
         @media (prefers-reduced-motion: reduce) {
-          .sweep, .logoImg, .logoWrap::after, .particles, .loading { animation: none !important; }
+          .beam, .logoImg, .logoWrap::after, .particles, .loading { animation: none !important; }
           .logoImg { opacity: 1; }
         }
       `}</style>
